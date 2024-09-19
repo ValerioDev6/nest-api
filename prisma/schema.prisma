@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model tb_categorias {
+  id_categoria String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre_ca    String        @db.VarChar(250)
+  state        Boolean?
+  created_at   DateTime?     @default(now()) @db.Timestamp(0)
+  imagen_url   String?       @db.Text
+  tb_producto  tb_producto[]
+}
+
+model tb_direccion {
+  id_direccion String        @id @db.VarChar(36)
+  direccion    String?       @db.VarChar(150)
+  id_tipo_zona String?       @db.Char(2)
+  id_tipo_via  String?       @db.Char(2)
+  tb_tipo_zona tb_tipo_zona? @relation(fields: [id_tipo_zona], references: [id_tipo_zona], onDelete: NoAction, onUpdate: NoAction, map: "tb_direccion_ibfk_1")
+  tb_tipo_via  tb_tipo_via?  @relation(fields: [id_tipo_via], references: [id_tipo_via], onDelete: NoAction, onUpdate: NoAction, map: "tb_direccion_ibfk_2")
+  tb_personas  tb_personas[]
+
+  @@index([id_tipo_via], map: "id_tipo_via")
+  @@index([id_tipo_zona], map: "id_tipo_zona")
+}
+
+model tb_marca {
+  id_marca     String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre_marca String        @db.VarChar(250)
+  tb_producto  tb_producto[]
+}
+
+model tb_pais {
+  id_pais     String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre      String?       @db.VarChar(150)
+  tb_personas tb_personas[]
+}
+
+model tb_permisos {
+  id_rol    Int      @id
+  nombre_pe String?  @db.VarChar(100)
+  estado    Boolean?
+  tb_rol    tb_rol[]
+}
+
+model tb_personal {
+  id_personal  String       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  id_persona   String?      @db.VarChar(36)
+  id_rol       Int?
+  contrasenia  String?      @db.VarChar(100)
+  estado       Boolean?
+  personal_img String?      @db.Text
+  email        String       @db.VarChar(100)
+  tb_personas  tb_personas? @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_personal_ibfk_1")
+  tb_rol       tb_rol?      @relation(fields: [id_rol], references: [id_rol], onDelete: NoAction, onUpdate: NoAction, map: "tb_personal_ibfk_2")
+
+  @@index([id_persona], map: "id_persona")
+  @@index([id_rol], map: "id_rol")
+}
+
+model tb_personas {
+  id_persona        String             @id @db.VarChar(36)
+  nombres           String?            @db.VarChar(50)
+  correo            String?            @db.VarChar(50)
+  apellido_p        String?            @db.VarChar(100)
+  apellido_m        String?            @db.VarChar(100)
+  fecha_nacimiento  DateTime?          @db.Date
+  id_sexo           String?            @db.VarChar(36)
+  id_direccion      String?            @db.VarChar(36)
+  id_tipo_persona   String?            @db.VarChar(36)
+  id_tipo_documento String?            @db.VarChar(36)
+  id_telefono       String?            @db.VarChar(36)
+  id_pais           String?            @db.VarChar(36)
+  tb_personal       tb_personal[]
+  tb_pais           tb_pais?           @relation(fields: [id_pais], references: [id_pais], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_1")
+  tb_tipo_telefono  tb_tipo_telefono?  @relation(fields: [id_telefono], references: [id_tipo_telefono], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_2")
+  tb_sexo           tb_sexo?           @relation(fields: [id_sexo], references: [id_sexo], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_3")
+  tb_direccion      tb_direccion?      @relation(fields: [id_direccion], references: [id_direccion], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_4")
+  tb_tipo_persona   tb_tipo_persona?   @relation(fields: [id_tipo_persona], references: [id_tipo_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_5")
+  tb_tipo_documento tb_tipo_documento? @relation(fields: [id_tipo_documento], references: [id_tipo_documento], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_6")
+  tb_proveedores    tb_proveedores[]
+
+  @@index([id_direccion], map: "id_direccion")
+  @@index([id_pais], map: "id_pais")
+  @@index([id_sexo], map: "id_sexo")
+  @@index([id_telefono], map: "id_telefono")
+  @@index([id_tipo_documento], map: "id_tipo_documento")
+  @@index([id_tipo_persona], map: "id_tipo_persona")
+}
+
+model tb_producto {
+  id_producto      String          @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  codigo           String          @db.Text
+  nombre_pro       String          @db.VarChar(250)
+  especificaciones String          @db.Text
+  precio           Decimal?        @db.Decimal(10, 2)
+  stock            Int             @default(0)
+  fecha_creacion   DateTime?       @default(now()) @db.Timestamp(0)
+  id_proveedor     String?         @db.VarChar(36)
+  id_categoria     String?         @db.VarChar(36)
+  id_marca         String?         @db.VarChar(36)
+  state            Boolean?
+  tb_proveedores   tb_proveedores? @relation(fields: [id_proveedor], references: [id_proveedor], onUpdate: NoAction, map: "tb_producto_ibfk_1")
+  tb_categorias    tb_categorias?  @relation(fields: [id_categoria], references: [id_categoria], onUpdate: NoAction, map: "tb_producto_ibfk_2")
+  tb_marca         tb_marca?       @relation(fields: [id_marca], references: [id_marca], onUpdate: NoAction, map: "tb_producto_ibfk_3")
+
+  @@index([id_categoria], map: "id_categoria")
+  @@index([id_marca], map: "id_marca")
+  @@index([id_proveedor], map: "id_proveedor")
+}
+
+model tb_proveedores {
+  id_proveedor String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  id_persona   String?       @db.VarChar(36)
+  notas        String?       @db.VarChar(250)
+  tb_producto  tb_producto[]
+  tb_personas  tb_personas?  @relation(fields: [id_persona], references: [id_persona], onDelete: Cascade, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
+
+  @@index([id_persona], map: "id_persona")
+}
+
+model tb_rol {
+  id_rol      Int           @id
+  nombre_rol  String?       @db.VarChar(100)
+  descripcion String?       @db.VarChar(250)
+  estado      Boolean?
+  id_permiso  Int?
+  tb_personal tb_personal[]
+  tb_permisos tb_permisos?  @relation(fields: [id_permiso], references: [id_rol], onDelete: NoAction, onUpdate: NoAction, map: "tb_rol_ibfk_1")
+
+  @@index([id_permiso], map: "id_permiso")
+}
+
+model tb_sexo {
+  id_sexo     String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  tipo_sexo   String?       @db.VarChar(150)
+  tb_personas tb_personas[]
+}
+
+model tb_tipo_documento {
+  id_tipo_documento String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  documento         String?       @db.VarChar(150)
+  tb_personas       tb_personas[]
+}
+
+model tb_tipo_persona {
+  id_tipo_persona String                        @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  tipo_persona    tb_tipo_persona_tipo_persona?
+  descripcion     String?                       @db.VarChar(100)
+  tb_personas     tb_personas[]
+}
+
+model tb_tipo_telefono {
+  id_tipo_telefono String        @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  tipo_telefono    String?       @db.VarChar(150)
+  tb_personas      tb_personas[]
+}
+
+model tb_tipo_via {
+  id_tipo_via  String         @id @db.Char(2)
+  codigo       String?        @db.VarChar(150)
+  descripcion  String?        @db.VarChar(255)
+  tb_direccion tb_direccion[]
+}
+
+model tb_tipo_zona {
+  id_tipo_zona String         @id @db.Char(2)
+  codigo       String?        @db.VarChar(150)
+  descripcion  String?        @db.VarChar(255)
+  tb_direccion tb_direccion[]
+}
+
+enum tb_tipo_persona_tipo_persona {
+  personal
+  cliente
+  proveedor
+  duenia
+  desarrollador
+}
