@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginPersonalDto } from './dto/login-personal.dto';
 import { CreatePersonalDto } from './dto/create-personal.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interfaces';
+import { tb_personal } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -13,45 +14,53 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // Register method (remains largely unchanged)
   async register(createPersonalDto: CreatePersonalDto) {
-    const { contrasenia, id_persona, ...rest } = createPersonalDto;
+    const { contrasenia, ...rest } = createPersonalDto;
 
-    // Verificar si la persona existe
-    const personaExiste = await this.prisma.tb_personas.findUnique({
-      where: { id_persona },
-    });
-
-    if (!personaExiste) {
-      throw new BadRequestException('La persona no existe en el sistema');
-    }
-
-    // Verificar si ya existe un personal para esta persona
     const personalExiste = await this.prisma.tb_personal.findFirst({
-      where: { id_persona },
+      where: { email: rest.email },
+      select: { id_personal: true },
     });
 
     if (personalExiste) {
-      throw new BadRequestException('Ya existe un personal para esta persona');
+      throw new BadRequestException('Ya existe un personal con este email');
     }
 
-    // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(contrasenia, 10);
 
-    // Crear el nuevo personal
     const nuevoPersonal = await this.prisma.tb_personal.create({
       data: {
         ...rest,
-        id_persona,
         contrasenia: hashedPassword,
+      },
+      select: {
+        id_personal: true,
+        email: true,
+        estado: true,
+        personal_img: true,
+        tb_personas: {
+          select: {
+            id_persona: true,
+            nombres: true,
+            apellido_p: true,
+            apellido_m: true,
+            fecha_nacimiento: true,
+            correo: true,
+          },
+        },
+        tb_rol: {
+          select: {
+            id_rol: true,
+            nombre_rol: true,
+          },
+        },
       },
     });
 
-    // Generar token
     const payload: JwtPayload = { id: nuevoPersonal.id_personal };
 
     return {
-      ...nuevoPersonal,
+      user: nuevoPersonal,
       access_token: this.jwtService.sign(payload),
     };
   }
@@ -59,30 +68,81 @@ export class AuthService {
   async login(loginPersonalDto: LoginPersonalDto) {
     const { email, password } = loginPersonalDto;
 
-    // Validate credentials
     const personal = await this.prisma.tb_personal.findFirst({
       where: { email },
+      select: {
+        id_personal: true,
+        email: true,
+        contrasenia: true,
+        estado: true,
+        personal_img: true,
+        tb_personas: {
+          select: {
+            id_persona: true,
+            nombres: true,
+            apellido_p: false,
+            apellido_m: false,
+            fecha_nacimiento: false,
+            correo: false,
+          },
+        },
+        tb_rol: {
+          select: {
+            id_rol: true,
+            nombre_rol: true,
+          },
+        },
+      },
     });
 
     if (!personal) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Compare password
     const isPasswordValid = await bcrypt.compare(password, personal.contrasenia);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Generate JWT
+    const { contrasenia, ...user } = personal;
     const payload: JwtPayload = { id: personal.id_personal };
+
     return {
+      user: user,
       access_token: this.getJwtToken(payload),
     };
   }
 
-  // Helper method for generating JWT
+  async checkAuthStatus(user: tb_personal) {
+    // return {
+    //   ...user,
+    //   token: this.getJwtToken({ id: user.id_personal }),
+    // };
+    const { id_personal, email, estado, personal_img, id_rol, id_persona } = user;
+
+    const personaInfo = id_persona
+      ? await this.prisma.tb_personas.findUnique({
+          where: { id_persona },
+          select: {
+            nombres: true,
+            apellido_p: true,
+            apellido_m: true,
+          },
+        })
+      : null;
+
+    return {
+      id_personal,
+      email,
+      estado,
+      personal_img,
+      id_rol,
+      persona: personaInfo,
+      token: this.getJwtToken({ id: id_personal }),
+    };
+  }
+
   private getJwtToken(payload: JwtPayload) {
     return this.jwtService.sign(payload);
   }
