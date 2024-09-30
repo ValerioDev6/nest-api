@@ -53,3 +53,5 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 ```
 
 ## Configuración de main.ts
+
+## plan de mejora descirbir , pasos, opiniones, sobre el coso  cuaderno d ienform , requisiots informales que dayli que hicimos
