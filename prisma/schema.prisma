@@ -66,7 +66,6 @@ model tb_personal {
 model tb_personas {
   id_persona        String             @id @db.VarChar(36)
   nombres           String?            @db.VarChar(50)
-  correo            String?            @db.VarChar(50)
   apellido_p        String?            @db.VarChar(100)
   apellido_m        String?            @db.VarChar(100)
   fecha_nacimiento  DateTime?          @db.Date

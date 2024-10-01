@@ -46,7 +46,6 @@ export class AuthService {
             apellido_p: true,
             apellido_m: true,
             fecha_nacimiento: true,
-            correo: true,
           },
         },
         tb_rol: {
@@ -125,6 +124,7 @@ export class AuthService {
       access_token: tokens,
     };
   }
+
   async getTokens(userId: string) {
     const payload: JwtPayload = { id: userId };
     const [accessToken, refreshToken] = await Promise.all([

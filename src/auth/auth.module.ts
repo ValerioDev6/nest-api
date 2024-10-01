@@ -6,11 +6,10 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PrismaModule } from 'src/prisma/prima.module';
-import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
+  providers: [AuthService, JwtStrategy],
   imports: [
     ConfigModule,
     PrismaModule,
@@ -28,6 +27,6 @@ import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
       },
     }),
   ],
-  exports: [JwtStrategy, PassportModule, JwtModule, RefreshTokenStrategy],
+  exports: [JwtStrategy, PassportModule, JwtModule],
 })
 export class AuthModule {}

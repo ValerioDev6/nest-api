@@ -11,4 +11,7 @@ export class PaginationDto {
   @IsPositive()
   @Type(() => Number)
   limit?: number;
+
+  @IsOptional()
+  search?: string; // Agrega esta línea
 }

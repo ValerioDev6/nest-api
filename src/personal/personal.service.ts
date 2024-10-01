@@ -19,7 +19,7 @@ export class PersonalService {
   async create(createPersonalDto: CreatePersonalDto) {}
 
   async findAll(paginationDto: PaginationDto) {
-    const { page = 1, limit = 10 } = paginationDto;
+    const { page = 1, limit = 10, search = '' } = paginationDto;
 
     try {
       const [personal, total] = await Promise.all([
@@ -27,12 +27,27 @@ export class PersonalService {
           skip: (page - 1) * limit,
           take: limit,
           orderBy: { email: 'asc' },
+          where: {
+            tb_personas: {
+              nombres: {
+                contains: search,
+              },
+            },
+          },
           include: {
             tb_personas: true,
             tb_rol: true,
           },
         }),
-        this.prisma.tb_personal.count(),
+        this.prisma.tb_personal.count({
+          where: {
+            tb_personas: {
+              nombres: {
+                contains: search,
+              },
+            },
+          },
+        }),
       ]);
 
       return {
@@ -40,9 +55,11 @@ export class PersonalService {
           page,
           limit,
           total,
-          next: `${process.env.HOST_API}/personal?page=${page + 1}&limit=${limit}`,
+          next: `${process.env.HOST_API}/personal?page=${page + 1}&limit=${limit}&search=${search}`,
           prev:
-            page > 1 ? `${process.env.HOST_API}/personal?page=${page - 1}&limit=${limit}` : null,
+            page > 1
+              ? `${process.env.HOST_API}/personal?page=${page - 1}&limit=${limit}&search=${search}`
+              : null,
         },
         personal,
       };
@@ -50,6 +67,7 @@ export class PersonalService {
       this.handleExceptions(error);
     }
   }
+
   async findOne(id: string) {
     try {
       const personal = await this.prisma.tb_personal.findUnique({
