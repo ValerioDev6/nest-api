@@ -7,6 +7,7 @@ import { CreatePersonalDto } from './dto/create-personal.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interfaces';
 import { tb_personal } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -43,8 +44,8 @@ export class AuthService {
           select: {
             id_persona: true,
             nombres: true,
-            apellido_p: true,
-            apellido_m: true,
+            apellido_paterno: true,
+            apellido_materno: true,
             fecha_nacimiento: true,
           },
         },
@@ -105,8 +106,8 @@ export class AuthService {
           where: { id_persona },
           select: {
             nombres: true,
-            apellido_p: true,
-            apellido_m: true,
+            apellido_paterno: true,
+            apellido_materno: true,
           },
         })
       : null;
@@ -145,5 +146,38 @@ export class AuthService {
   }
   private getJwtToken(payload: JwtPayload) {
     return this.jwtService.sign(payload);
+  }
+
+  async changePassword(idPersonal: string, changePasswordDto: ChangePasswordDto) {
+    const personal = await this.prisma.tb_personal.findUnique({
+      where: { id_personal: idPersonal },
+    });
+
+    if (!personal) {
+      throw new UnauthorizedException('Personal no encontrado');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      personal.contrasenia,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
+    }
+    if (changePasswordDto.newPassword !== changePasswordDto.confirmNewPassword) {
+      throw new UnauthorizedException('La nueva contraseña y la confirmación no coinciden');
+    }
+
+    const hashedNewPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
+    await this.prisma.tb_personal.update({
+      where: { id_personal: idPersonal },
+      data: { contrasenia: hashedNewPassword },
+    });
+
+    return {
+      ok: true,
+      message: 'Contraseña actualizada exitosamente',
+    };
   }
 }

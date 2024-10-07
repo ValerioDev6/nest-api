@@ -5,6 +5,7 @@ import { CreatePersonalDto } from './dto/create-personal.dto';
 import { GetUser } from './decorators/get-user.decorator';
 import { tb_personal } from '@prisma/client';
 import { Auth } from './decorators/auth.decorator';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -23,5 +24,11 @@ export class AuthController {
   @Auth()
   checkAuthStatus(@GetUser() user: tb_personal) {
     return this.authService.checkAuthStatus(user);
+  }
+
+  @Post('change-password')
+  @Auth()
+  changePassword(@GetUser() user: tb_personal, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(user.id_personal, changePasswordDto);
   }
 }

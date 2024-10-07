@@ -5,9 +5,19 @@ import { AuthModule } from './auth/auth.module';
 import { PersonalModule } from './personal/personal.module';
 import { CommonModule } from './common/common.module';
 import { PrismaModule } from './prisma/prima.module';
+import { PersonaModule } from './persona/persona.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
-  imports: [CategorieModule, AuthModule, PersonalModule, CommonModule, PrismaModule],
+  imports: [
+    CategorieModule,
+    AuthModule,
+    PersonalModule,
+    CommonModule,
+    PrismaModule,
+    PersonaModule,
+    RolesModule,
+  ],
   controllers: [],
   providers: [PrismaService],
 })

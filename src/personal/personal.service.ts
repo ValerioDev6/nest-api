@@ -10,13 +10,56 @@ import { UpdatePersonalDto } from './dto/update-personal.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class PersonalService {
   constructor(private readonly prisma: PrismaService) {}
   private readonly logger = new Logger('PersonalService');
 
-  async create(createPersonalDto: CreatePersonalDto) {}
+  async create(createPersonalDto: CreatePersonalDto) {
+    const { id_persona, contrasenia, ...restPersonalData } = createPersonalDto;
+
+    try {
+      // Usamos una transacción para asegurar la integridad de los datos
+      return await this.prisma.$transaction(async (prisma) => {
+        // Verificamos si la persona existe
+        const persona = await prisma.tb_personas.findUnique({
+          where: { id_persona },
+        });
+
+        if (!persona) {
+          throw new BadRequestException('La persona asociada no existe');
+        }
+
+        // Encriptamos la contraseña
+        const hashedPassword = await bcrypt.hash(contrasenia, 10);
+
+        // Creamos el personal
+        const newPersonal = await prisma.tb_personal.create({
+          data: {
+            ...restPersonalData,
+            id_persona,
+            contrasenia: hashedPassword,
+          },
+          include: {
+            tb_personas: true,
+            tb_rol: true,
+          },
+        });
+
+        return newPersonal;
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      if (error.code === 'P2002') {
+        throw new BadRequestException('Ya existe un personal con ese email');
+      }
+      throw new InternalServerErrorException('Error al crear el personal');
+    }
+  }
 
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 10, search = '' } = paginationDto;
@@ -73,7 +116,17 @@ export class PersonalService {
       const personal = await this.prisma.tb_personal.findUnique({
         where: { id_personal: id },
         include: {
-          tb_personas: true,
+          tb_personas: {
+            include: {
+              tb_pais: true,
+              tb_tipo_telefono: true,
+              tb_sexo: true,
+              tb_direccion: true,
+              tb_tipo_persona: true,
+              tb_tipo_documento: true,
+              tb_telefonos_persona: true,
+            },
+          },
           tb_rol: true,
         },
       });
