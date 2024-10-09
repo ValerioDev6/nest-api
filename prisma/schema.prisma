@@ -159,7 +159,6 @@ model tb_personas {
   id_tipo_persona      String?                @db.VarChar(36)
   id_tipo_documento    String?                @db.VarChar(36)
   id_sexo              String?                @db.VarChar(36)
-  apellido_m           String?                @db.VarChar(50)
   fecha_nacimiento     DateTime?              @db.Date
   id_direccion         String?                @db.VarChar(36)
   id_pais              String?                @db.VarChar(36)
