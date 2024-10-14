@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { DireccionService } from './direccion.service';
 import { CreateDireccionDto } from './dto/create-direccion.dto';
 import { UpdateDireccionDto } from './dto/update-direccion.dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Controller('direccion')
 export class DireccionController {
@@ -13,8 +14,8 @@ export class DireccionController {
   }
 
   @Get()
-  findAll() {
-    return this.direccionService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.direccionService.findAll(paginationDto);
   }
 
   @Get(':id')

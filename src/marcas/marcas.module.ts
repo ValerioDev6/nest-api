@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PaisService } from './pais.service';
-import { PaisController } from './pais.controller';
+import { MarcasService } from './marcas.service';
+import { MarcasController } from './marcas.controller';
 import { PrismaModule } from 'src/prisma/prima.module';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  controllers: [PaisController],
+  controllers: [MarcasController],
   imports: [PrismaModule, AuthModule],
-  providers: [PaisService],
+  providers: [MarcasService],
 })
-export class PaisModule {}
+export class MarcasModule {}

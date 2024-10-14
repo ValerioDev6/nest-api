@@ -9,7 +9,7 @@ datasource db {
 
 model tb_categorias {
   id_categoria String         @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombre_cat   String         @db.VarChar(100)
+  nombre_cat   String         @unique(map: "nombre_cat_UNIQUE") @db.VarChar(100)
   estado       Boolean
   created_at   DateTime?      @default(now()) @db.Timestamp(0)
   updated_at   DateTime?      @default(now()) @db.Timestamp(0)
@@ -67,13 +67,14 @@ model tb_devoluciones {
 }
 
 model tb_direccion {
-  id_direccion String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  direccion    String        @db.VarChar(200)
-  id_tipo_via  String?       @db.VarChar(36)
-  id_tipo_zona String?       @db.VarChar(36)
-  tb_tipo_via  tb_tipo_via?  @relation(fields: [id_tipo_via], references: [id_tipo_via], onDelete: NoAction, onUpdate: NoAction, map: "tb_direccion_ibfk_1")
-  tb_tipo_zona tb_tipo_zona? @relation(fields: [id_tipo_zona], references: [id_tipo_zona], onDelete: NoAction, onUpdate: NoAction, map: "tb_direccion_ibfk_2")
-  tb_personas  tb_personas[]
+  id_direccion  String          @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  direccion     String          @db.VarChar(200)
+  id_tipo_via   String?         @db.VarChar(36)
+  id_tipo_zona  String?         @db.VarChar(36)
+  tb_tipo_via   tb_tipo_via?    @relation(fields: [id_tipo_via], references: [id_tipo_via], onDelete: NoAction, onUpdate: NoAction, map: "tb_direccion_ibfk_1")
+  tb_tipo_zona  tb_tipo_zona?   @relation(fields: [id_tipo_zona], references: [id_tipo_zona], onDelete: NoAction, onUpdate: NoAction, map: "tb_direccion_ibfk_2")
+  tb_personas   tb_personas[]
+  tb_sucursales tb_sucursales[]
 
   @@index([id_tipo_via], map: "id_tipo_via")
   @@index([id_tipo_zona], map: "id_tipo_zona")
@@ -94,7 +95,10 @@ model tb_inventario {
 
 model tb_marcas {
   id_marca     String         @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombre_marca String         @db.VarChar(100)
+  nombre_marca String         @unique(map: "nombre_marca_UNIQUE") @db.VarChar(100)
+  estado       Boolean?       @default(true)
+  created_at   DateTime?      @default(now()) @db.Timestamp(0)
+  updated_at   DateTime?      @default(now()) @db.Timestamp(0)
   tb_productos tb_productos[]
 }
 
@@ -114,9 +118,10 @@ model tb_metodos_envio {
 }
 
 model tb_pais {
-  id_pais     String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombre      String        @db.VarChar(100)
-  tb_personas tb_personas[]
+  id_pais       String          @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre        String          @db.VarChar(100)
+  tb_personas   tb_personas[]
+  tb_sucursales tb_sucursales[]
 }
 
 model tb_pedidos {
@@ -185,34 +190,46 @@ model tb_personas {
 }
 
 model tb_productos {
-  id_producto       String              @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombre_producto   String              @db.VarChar(100)
-  descripcion       String?             @db.Text
+  id_producto       String                       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre_producto   String                       @unique(map: "nombre_producto_UNIQUE") @db.VarChar(100)
+  descripcion       String?                      @db.Text
   stock             Int
-  precio            Decimal             @db.Decimal(10, 2)
-  id_categoria      String?             @db.VarChar(36)
-  fecha_creacion    DateTime?           @default(now()) @db.Timestamp(0)
-  id_proveedor      String?             @db.VarChar(36)
-  id_marca          String?             @db.VarChar(36)
+  id_categoria      String?                      @db.VarChar(36)
+  fecha_creacion    DateTime?                    @default(now()) @db.Timestamp(0)
+  id_proveedor      String?                      @db.VarChar(36)
+  id_marca          String?                      @db.VarChar(36)
   is_active         Boolean
+  precio_compra     Decimal                      @db.Decimal(10, 2)
+  precio_venta      Decimal                      @db.Decimal(10, 2)
+  producto_img      String?                      @db.Text
+  fecha_ingreso     DateTime                     @db.Date
+  codigo_producto   String?                      @unique(map: "codigo_producto") @db.VarChar(255)
+  updated_at        DateTime?                    @default(now()) @db.Timestamp(0)
+  estado_produto    tb_productos_estado_produto? @default(Disponible)
+  id_sucursal       String?                      @db.VarChar(36)
   tb_detalle_pedido tb_detalle_pedido[]
   tb_detalle_venta  tb_detalle_venta[]
   tb_inventario     tb_inventario[]
-  tb_categorias     tb_categorias?      @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_1")
-  tb_marcas         tb_marcas?          @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_2")
-  tb_proveedores    tb_proveedores?     @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_3")
+  tb_categorias     tb_categorias?               @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_1")
+  tb_marcas         tb_marcas?                   @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_2")
+  tb_proveedores    tb_proveedores?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_3")
+  tb_sucursales     tb_sucursales?               @relation(fields: [id_sucursal], references: [id_sucursal], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_4")
   tb_ventas         tb_ventas[]
 
   @@index([id_categoria], map: "id_categoria")
   @@index([id_marca], map: "id_marca")
   @@index([id_proveedor], map: "id_proveedor")
+  @@index([id_sucursal], map: "id_sucursal")
 }
 
 model tb_proveedores {
-  id_proveedor String         @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  id_persona   String?        @db.VarChar(36)
-  tb_productos tb_productos[]
-  tb_personas  tb_personas?   @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
+  id_proveedor     String                           @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  id_persona       String?                          @db.VarChar(36)
+  estado_proveedor tb_proveedores_estado_proveedor? @default(Activo)
+  created_at       DateTime?                        @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?                        @default(now()) @db.Timestamp(0)
+  tb_productos     tb_productos[]
+  tb_personas      tb_personas?                     @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
 
   @@index([id_persona], map: "id_persona")
 }
@@ -232,13 +249,23 @@ model tb_sexo {
 }
 
 model tb_sucursales {
-  id_sucursal     String          @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombre_sucursal String          @db.VarChar(100)
-  direccion       String?         @db.VarChar(200)
-  telefono        String?         @db.VarChar(20)
-  email           String?         @db.VarChar(100)
-  tb_inventario   tb_inventario[]
-  tb_ventas       tb_ventas[]
+  id_sucursal      String            @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre_sucursal  String            @db.VarChar(100)
+  telefono         String?           @db.VarChar(20)
+  email            String?           @db.VarChar(100)
+  id_direccion     String            @db.VarChar(36)
+  id_tipo_telefono String?           @db.VarChar(36)
+  id_pais          String?           @db.VarChar(36)
+  tb_inventario    tb_inventario[]
+  tb_productos     tb_productos[]
+  tb_direccion     tb_direccion      @relation(fields: [id_direccion], references: [id_direccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_direccion")
+  tb_pais          tb_pais?          @relation(fields: [id_pais], references: [id_pais], onDelete: NoAction, onUpdate: NoAction, map: "fk_pais")
+  tb_tipo_telefono tb_tipo_telefono? @relation(fields: [id_tipo_telefono], references: [id_tipo_telefono], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipo_telefono")
+  tb_ventas        tb_ventas[]
+
+  @@index([id_direccion], map: "fk_direccion")
+  @@index([id_pais], map: "fk_pais")
+  @@index([id_tipo_telefono], map: "fk_tipo_telefono")
 }
 
 model tb_telefonos_persona {
@@ -271,6 +298,7 @@ model tb_tipo_telefono {
   tipo_telefono        String                 @db.VarChar(50)
   descripcion          String?                @db.VarChar(100)
   tb_personas          tb_personas[]
+  tb_sucursales        tb_sucursales[]
   tb_telefonos_persona tb_telefonos_persona[]
 }
 
@@ -312,4 +340,15 @@ model tb_ventas {
   @@index([id_personal], map: "id_personal")
   @@index([id_sucursal], map: "id_sucursal")
   @@index([producto_id], map: "producto_id")
+}
+
+enum tb_proveedores_estado_proveedor {
+  Activo
+  Inactivo
+  Suspendido
+}
+
+enum tb_productos_estado_produto {
+  Disponible
+  Agotado
 }

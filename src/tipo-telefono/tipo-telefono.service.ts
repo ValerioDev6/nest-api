@@ -1,55 +1,52 @@
 import {
   BadRequestException,
-  HttpException,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreatePaiDto } from './dto/create-pai.dto';
-import { UpdatePaiDto } from './dto/update-pai.dto';
-import { PaginationDto } from '../common/dtos/pagination.dto';
+import { CreateTipoTelefonoDto } from './dto/create-tipo-telefono.dto';
+import { UpdateTipoTelefonoDto } from './dto/update-tipo-telefono.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class PaisService {
+export class TipoTelefonoService {
   constructor(private readonly prisma: PrismaService) {}
-  private readonly logger = new Logger('PaisService');
-  create(createPaiDto: CreatePaiDto) {
-    return 'This action adds a new pai';
+  private readonly logger = new Logger('TipoTelefonoService');
+  create(createTipoTelefonoDto: CreateTipoTelefonoDto) {
+    return 'This action adds a new tipoTelefono';
   }
 
   async findAll() {
     try {
-      const pais = await this.prisma.tb_pais.findMany({
+      const tiposTelfonos = await this.prisma.tb_tipo_telefono.findMany({
         orderBy: {
-          nombre: 'asc',
+          tipo_telefono: 'asc',
         },
       });
 
-      return pais;
+      return tiposTelfonos;
     } catch (error) {
       this.handleExceptions(error);
     }
   }
+
   findOne(id: number) {
-    return `This action returns a #${id} pai`;
+    return `This action returns a #${id} tipoTelefono`;
   }
 
-  update(id: number, updatePaiDto: UpdatePaiDto) {
-    return `This action updates a #${id} pai`;
+  update(id: number, updateTipoTelefonoDto: UpdateTipoTelefonoDto) {
+    return `This action updates a #${id} tipoTelefono`;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} pai`;
+    return `This action removes a #${id} tipoTelefono`;
   }
 
   private handleExceptions(error: any) {
     this.logger.error(error);
-    if (error instanceof HttpException) {
-      throw error;
-    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
         case 'P2002':

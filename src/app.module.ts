@@ -16,6 +16,11 @@ import { DireccionModule } from './direccion/direccion.module';
 import { TelefonoPersonalModule } from './telefono-personal/telefono-personal.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { ClienteModule } from './cliente/cliente.module';
+import { MarcasModule } from './marcas/marcas.module';
+import { SurcursalModule } from './surcursal/surcursal.module';
+import { TipoZonaModule } from './tipo-zona/tipo-zona.module';
+import { TipoViaModule } from './tipo-via/tipo-via.module';
+import { TipoTelefonoModule } from './tipo-telefono/tipo-telefono.module';
 
 @Module({
   imports: [
@@ -35,6 +40,11 @@ import { ClienteModule } from './cliente/cliente.module';
     TelefonoPersonalModule,
     ProveedoresModule,
     ClienteModule,
+    MarcasModule,
+    SurcursalModule,
+    TipoZonaModule,
+    TipoViaModule,
+    TipoTelefonoModule,
   ],
   controllers: [],
   providers: [PrismaService],

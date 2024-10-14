@@ -1,26 +1,194 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class ProductsService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger('ProductosService');
+
+  async create(createProductDto: CreateProductDto) {
+    try {
+      const {
+        nombre_producto,
+        descripcion,
+        stock,
+        is_active,
+        precio_compra,
+        precio_venta,
+        id_marca,
+        id_categoria,
+        id_proveedor,
+        id_sucursal,
+        producto_img,
+        codigo_producto,
+        fecha_ingreso,
+        estado_produto = 'Disponible',
+      } = createProductDto;
+
+      const newProduct = await this.prisma.tb_productos.create({
+        data: {
+          nombre_producto,
+          descripcion,
+          stock,
+          is_active,
+          precio_compra,
+          precio_venta,
+          producto_img,
+          fecha_ingreso,
+          codigo_producto,
+          estado_produto,
+
+          tb_marcas: {
+            connect: { id_marca },
+          },
+          tb_categorias: {
+            connect: { id_categoria },
+          },
+          tb_proveedores: {
+            connect: { id_proveedor },
+          },
+          tb_sucursales: {
+            connect: { id_sucursal },
+          },
+        },
+      });
+
+      return newProduct;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(paginationDto: PaginationDto) {
+    const { page = 1, limit = 5, search = '' } = paginationDto;
+
+    try {
+      const [productos, total] = await Promise.all([
+        this.prisma.tb_productos.findMany({
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { nombre_producto: 'asc' },
+          where: {
+            OR: [{ nombre_producto: { contains: search } }],
+          },
+        }),
+        this.prisma.tb_productos.count({
+          where: {
+            OR: [
+              {
+                nombre_producto: { contains: search },
+              },
+            ],
+          },
+        }),
+      ]);
+      return {
+        info: {
+          page,
+          limit,
+          total,
+          next: `${process.env.HOST_API}/roles?page=${page + 1}&limit=${limit}&search=${search}`,
+          prev:
+            page > 1
+              ? `${process.env.HOST_API}/roles?page=${page - 1}&limit=${limit}&search=${search}`
+              : null,
+        },
+        productos,
+      };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    try {
+      const producto = await this.prisma.tb_productos.findUnique({
+        where: { id_producto: id },
+      });
+
+      if (!producto) {
+        throw new NotFoundException(`Producto with ID ${id} not found`);
+      }
+
+      return producto;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    try {
+      const existingProducto = await this.prisma.tb_productos.findUnique({
+        where: { id_producto: id },
+      });
+
+      if (!existingProducto) {
+        throw new NotFoundException(`Producto with ID ${id} not found`);
+      }
+
+      const updateProducto = await this.prisma.tb_productos.update({
+        where: { id_producto: id },
+        data: { ...updateProductDto },
+      });
+
+      return updateProducto;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    try {
+      const producto = await this.prisma.tb_productos.findUnique({
+        where: { id_producto: id },
+      });
+
+      if (!producto) {
+        throw new NotFoundException(`Producto with  ID ${id} not found`);
+      }
+
+      await this.prisma.tb_productos.delete({
+        where: { id_producto: id },
+      });
+
+      return { message: `Producto with ID ${id} has been deleted` };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+
+  private handleExceptions(error: any) {
+    this.logger.error(error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002':
+          throw new BadRequestException('Ya existe un registro con esos datos únicos');
+        case 'P2014':
+          throw new BadRequestException('El registro viola una restricción de relación');
+        case 'P2003':
+          throw new BadRequestException('El registro viola una restricción de clave foránea');
+        case 'P2025':
+          throw new NotFoundException('No se encontró el registro para actualizar o eliminar');
+      }
+    }
+
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+
+    throw new InternalServerErrorException(
+      'Ocurrió un error inesperado. Por favor, contacte al administrador.',
+    );
   }
 }
