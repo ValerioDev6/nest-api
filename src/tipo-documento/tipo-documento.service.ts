@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTipoDocumentoDto } from './dto/create-tipo-documento.dto';
-import { UpdateTipoDocumentoDto } from './dto/update-tipo-documento.dto';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TipoDocumentoService {
-  create(createTipoDocumentoDto: CreateTipoDocumentoDto) {
-    return 'This action adds a new tipoDocumento';
+  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger('TipoDocumentoService');
+
+  async findAll() {
+    try {
+      const tiposDocumentos = await this.prisma.tb_tipo_documento.findMany({
+        orderBy: {
+          documento: 'asc',
+        },
+      });
+      return tiposDocumentos;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all tipoDocumento`;
-  }
+  private handleExceptions(error: any) {
+    this.logger.error(error);
 
-  findOne(id: number) {
-    return `This action returns a #${id} tipoDocumento`;
-  }
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002':
+          throw new BadRequestException('Ya existe un registro con esos datos únicos');
+        case 'P2014':
+          throw new BadRequestException('El registro viola una restricción de relación');
+        case 'P2003':
+          throw new BadRequestException('El registro viola una restricción de clave foránea');
+        case 'P2025':
+          throw new NotFoundException('No se encontró el registro para actualizar o eliminar');
+      }
+    }
 
-  update(id: number, updateTipoDocumentoDto: UpdateTipoDocumentoDto) {
-    return `This action updates a #${id} tipoDocumento`;
-  }
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} tipoDocumento`;
+    throw new InternalServerErrorException(
+      'Ocurrió un error inesperado. Por favor, contacte al administrador.',
+    );
   }
 }

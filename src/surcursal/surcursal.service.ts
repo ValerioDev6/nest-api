@@ -5,11 +5,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSurcursalDto } from './dto/create-surcursal.dto';
 import { UpdateSurcursalDto } from './dto/update-surcursal.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SurcursalService {

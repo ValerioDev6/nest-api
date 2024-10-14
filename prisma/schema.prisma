@@ -48,7 +48,7 @@ model tb_detalle_venta {
   precio           Decimal?      @db.Decimal(10, 2)
   descuento        Decimal?      @db.Decimal(10, 2)
   tb_productos     tb_productos? @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_venta_ibfk_1")
-  tb_ventas        tb_ventas?    @relation(fields: [id_venta], references: [id_venta], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_venta_ibfk_2")
+  tb_ventas        tb_ventas?    @relation(fields: [id_venta] , references: [id_venta], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_venta_ibfk_2")
 
   @@index([id_producto], map: "id_producto")
   @@index([id_venta], map: "id_venta")
