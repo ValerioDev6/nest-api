@@ -48,7 +48,7 @@ model tb_detalle_venta {
   precio           Decimal?      @db.Decimal(10, 2)
   descuento        Decimal?      @db.Decimal(10, 2)
   tb_productos     tb_productos? @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_venta_ibfk_1")
-  tb_ventas        tb_ventas?    @relation(fields: [id_venta] , references: [id_venta], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_venta_ibfk_2")
+  tb_ventas        tb_ventas?    @relation(fields: [id_venta], references: [id_venta], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_venta_ibfk_2")
 
   @@index([id_producto], map: "id_producto")
   @@index([id_venta], map: "id_venta")
@@ -170,6 +170,8 @@ model tb_personas {
   id_tipo_telefono     String?                @db.VarChar(36)
   apellido_paterno     String                 @db.VarChar(50)
   apellido_materno     String                 @db.VarChar(50)
+  numero_documento     String                 @db.VarChar(20)
+  telefono             String?                @db.VarChar(20)
   tb_cliente           tb_cliente[]
   tb_personal          tb_personal[]
   tb_tipo_persona      tb_tipo_persona?       @relation(fields: [id_tipo_persona], references: [id_tipo_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_1")
@@ -190,32 +192,35 @@ model tb_personas {
 }
 
 model tb_productos {
-  id_producto       String                       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombre_producto   String                       @unique(map: "nombre_producto_UNIQUE") @db.VarChar(100)
-  descripcion       String?                      @db.Text
-  stock             Int
-  id_categoria      String?                      @db.VarChar(36)
-  fecha_creacion    DateTime?                    @default(now()) @db.Timestamp(0)
-  id_proveedor      String?                      @db.VarChar(36)
-  id_marca          String?                      @db.VarChar(36)
-  is_active         Boolean
-  precio_compra     Decimal                      @db.Decimal(10, 2)
-  precio_venta      Decimal                      @db.Decimal(10, 2)
-  producto_img      String?                      @db.Text
-  fecha_ingreso     DateTime                     @db.Date
-  codigo_producto   String?                      @unique(map: "codigo_producto") @db.VarChar(255)
-  updated_at        DateTime?                    @default(now()) @db.Timestamp(0)
-  estado_produto    tb_productos_estado_produto? @default(Disponible)
-  id_sucursal       String?                      @db.VarChar(36)
-  tb_detalle_pedido tb_detalle_pedido[]
-  tb_detalle_venta  tb_detalle_venta[]
-  tb_inventario     tb_inventario[]
-  tb_categorias     tb_categorias?               @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_1")
-  tb_marcas         tb_marcas?                   @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_2")
-  tb_proveedores    tb_proveedores?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_3")
-  tb_sucursales     tb_sucursales?               @relation(fields: [id_sucursal], references: [id_sucursal], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_4")
-  tb_ventas         tb_ventas[]
+  id_producto         String                       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre_producto     String                       @unique(map: "nombre_producto_UNIQUE") @db.VarChar(100)
+  descripcion         String?                      @db.Text
+  stock               Int
+  id_categoria        String?                      @db.VarChar(36)
+  fecha_creacion      DateTime?                    @default(now()) @db.Timestamp(0)
+  id_proveedor        String?                      @db.VarChar(36)
+  id_marca            String?                      @db.VarChar(36)
+  is_active           Boolean
+  precio_compra       Decimal                      @db.Decimal(10, 2)
+  precio_venta        Decimal                      @db.Decimal(10, 2)
+  producto_img        String?                      @db.Text
+  fecha_ingreso       DateTime                     @db.Date
+  codigo_producto     String?                      @unique(map: "codigo_producto") @db.VarChar(255)
+  updated_at          DateTime?                    @default(now()) @db.Timestamp(0)
+  estado_produto      tb_productos_estado_produto? @default(Disponible)
+  id_sucursal         String?                      @db.VarChar(36)
+  id_tipo_propietario String                       @db.VarChar(36)
+  tb_detalle_pedido   tb_detalle_pedido[]
+  tb_detalle_venta    tb_detalle_venta[]
+  tb_inventario       tb_inventario[]
+  tb_tipo_propietario tb_tipo_propietario          @relation(fields: [id_tipo_propietario], references: [id_tipo_propietario], onDelete: NoAction, onUpdate: NoAction, map: "fk_producto_tipo_propietario")
+  tb_categorias       tb_categorias?               @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_1")
+  tb_marcas           tb_marcas?                   @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_2")
+  tb_proveedores      tb_proveedores?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_3")
+  tb_sucursales       tb_sucursales?               @relation(fields: [id_sucursal], references: [id_sucursal], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_4")
+  tb_ventas           tb_ventas[]
 
+  @@index([id_tipo_propietario], map: "fk_producto_tipo_propietario")
   @@index([id_categoria], map: "id_categoria")
   @@index([id_marca], map: "id_marca")
   @@index([id_proveedor], map: "id_proveedor")
@@ -228,6 +233,7 @@ model tb_proveedores {
   estado_proveedor tb_proveedores_estado_proveedor? @default(Activo)
   created_at       DateTime?                        @default(now()) @db.Timestamp(0)
   updated_at       DateTime?                        @default(now()) @db.Timestamp(0)
+  nombre_comercial String?                          @db.VarChar(100)
   tb_productos     tb_productos[]
   tb_personas      tb_personas?                     @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
 
@@ -291,6 +297,12 @@ model tb_tipo_persona {
   tipo_persona    String        @db.VarChar(100)
   descripcion     String?       @db.Text
   tb_personas     tb_personas[]
+}
+
+model tb_tipo_propietario {
+  id_tipo_propietario String         @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  descripcion         String         @db.VarChar(50)
+  tb_productos        tb_productos[]
 }
 
 model tb_tipo_telefono {

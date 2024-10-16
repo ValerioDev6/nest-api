@@ -32,6 +32,7 @@ export class ProductsService {
         producto_img,
         codigo_producto,
         fecha_ingreso,
+        id_tipo_propietario,
         estado_produto = 'Disponible',
       } = createProductDto;
 
@@ -59,6 +60,9 @@ export class ProductsService {
           },
           tb_sucursales: {
             connect: { id_sucursal },
+          },
+          tb_tipo_propietario: {
+            connect: { id_tipo_propietario },
           },
         },
       });

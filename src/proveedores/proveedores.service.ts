@@ -30,21 +30,34 @@ export class ProveedoresService {
           take: limit,
           where: {
             tb_personas: {
-              nombres: {
-                contains: search,
-              },
+              OR: [
+                { nombres: { contains: search } },
+                { apellido_paterno: { contains: search } },
+                { apellido_materno: { contains: search } },
+              ],
             },
           },
           include: {
-            tb_personas: true,
+            tb_personas: {
+              include: {
+                tb_tipo_persona: true,
+                tb_tipo_documento: true,
+                tb_sexo: true,
+                tb_direccion: true,
+                tb_pais: true,
+                tb_tipo_telefono: true,
+              },
+            },
           },
         }),
         this.prisma.tb_proveedores.count({
           where: {
             tb_personas: {
-              nombres: {
-                contains: search,
-              },
+              OR: [
+                { nombres: { contains: search } },
+                { apellido_paterno: { contains: search } },
+                { apellido_materno: { contains: search } },
+              ],
             },
           },
         }),
@@ -57,11 +70,11 @@ export class ProveedoresService {
           total,
           next:
             page * limit < total
-              ? `${process.env.HOST_API}/roles?page=${page + 1}&limit=${limit}&search=${search}`
+              ? `${process.env.HOST_API}/proveedores?page=${page + 1}&limit=${limit}&search=${search}`
               : null,
           prev:
             page > 1
-              ? `${process.env.HOST_API}/roles?page=${page - 1}&limit=${limit}&search=${search}`
+              ? `${process.env.HOST_API}/proveedores?page=${page - 1}&limit=${limit}&search=${search}`
               : null,
         },
         proveedores,
