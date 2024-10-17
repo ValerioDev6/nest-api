@@ -21,6 +21,8 @@ import { TipoPersonaModule } from './tipo-persona/tipo-persona.module';
 import { TipoTelefonoModule } from './tipo-telefono/tipo-telefono.module';
 import { TipoViaModule } from './tipo-via/tipo-via.module';
 import { TipoZonaModule } from './tipo-zona/tipo-zona.module';
+import { BasicReportsModule } from './basic-reports/basic-reports.module';
+import { PrinterModule } from './printer/printer.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { TipoZonaModule } from './tipo-zona/tipo-zona.module';
     TipoZonaModule,
     TipoViaModule,
     TipoTelefonoModule,
+    BasicReportsModule,
+    PrinterModule,
   ],
   controllers: [],
   providers: [PrismaService],
