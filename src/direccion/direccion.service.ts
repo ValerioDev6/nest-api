@@ -67,6 +67,20 @@ export class DireccionService {
     }
   }
 
+  async findAllComboBox() {
+    try {
+      const direcciones = await this.prisma.tb_direccion.findMany({
+        orderBy: {
+          direccion: 'asc',
+        },
+      });
+
+      return direcciones;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} direccion`;
   }

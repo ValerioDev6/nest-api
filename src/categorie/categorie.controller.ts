@@ -18,6 +18,11 @@ export class CategorieController {
     return this.categorieService.findAll(paginationDto);
   }
 
+  @Get('combo')
+  findCategoriaComboBox() {
+    return this.categorieService.findAllComboBox();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categorieService.findOne(id);

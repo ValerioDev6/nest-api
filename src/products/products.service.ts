@@ -27,13 +27,12 @@ export class ProductsService {
         precio_venta,
         id_marca,
         id_categoria,
-        id_proveedor,
         id_sucursal,
         producto_img,
         codigo_producto,
         fecha_ingreso,
         id_tipo_propietario,
-        estado_produto = 'Disponible',
+        estado_produto,
       } = createProductDto;
 
       const newProduct = await this.prisma.tb_productos.create({
@@ -55,9 +54,7 @@ export class ProductsService {
           tb_categorias: {
             connect: { id_categoria },
           },
-          tb_proveedores: {
-            connect: { id_proveedor },
-          },
+
           tb_sucursales: {
             connect: { id_sucursal },
           },
@@ -82,6 +79,20 @@ export class ProductsService {
           skip: (page - 1) * limit,
           take: limit,
           orderBy: { nombre_producto: 'asc' },
+          include: {
+            tb_marcas: {
+              select: { nombre_marca: true },
+            },
+            tb_categorias: {
+              select: { nombre_cat: true },
+            },
+            tb_tipo_propietario: {
+              select: { descripcion: true },
+            },
+            tb_sucursales: {
+              select: { nombre_sucursal: true },
+            },
+          },
           where: {
             OR: [{ nombre_producto: { contains: search } }],
           },

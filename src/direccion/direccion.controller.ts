@@ -18,6 +18,11 @@ export class DireccionController {
     return this.direccionService.findAll(paginationDto);
   }
 
+  @Get('combo')
+  findDireccionesComboAll() {
+    return this.direccionService.findAllComboBox();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.direccionService.findOne(+id);

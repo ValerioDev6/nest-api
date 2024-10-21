@@ -18,6 +18,11 @@ export class SurcursalController {
     return this.surcursalService.findAll(paginationDto);
   }
 
+  @Get('combo')
+  findAllSucursalesComboBox() {
+    return this.surcursalService.findAllSucursalComboBox();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.surcursalService.findOne(id);

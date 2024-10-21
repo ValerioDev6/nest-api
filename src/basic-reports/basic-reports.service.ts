@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrinterService } from 'src/printer/printer.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { getHelloWordReport } from 'src/reports';
-import { getMarcasReport } from 'src/reports/marcas.report';
+import { getHelloWordReport, getMarcasReport } from 'src/reports/pdf';
 
 @Injectable()
 export class BasicReportsService {

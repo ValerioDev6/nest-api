@@ -87,6 +87,19 @@ export class SurcursalService {
       this.handleExceptions(error);
     }
   }
+  async findAllSucursalComboBox() {
+    try {
+      const sucursales = await this.prisma.tb_sucursales.findMany({
+        orderBy: {
+          nombre_sucursal: 'asc',
+        },
+      });
+
+      return sucursales;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
 
   async findOne(id: string) {
     try {

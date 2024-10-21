@@ -18,6 +18,11 @@ export class MarcasController {
     return this.marcasService.findAll(paginationDto);
   }
 
+  @Get('combo')
+  findAllMarcasComboBox() {
+    return this.marcasService.findComboBoxAll();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.marcasService.findOne(id);

@@ -49,7 +49,19 @@ export class CategorieService {
       this.handleExceptions(error);
     }
   }
+  async findAllComboBox() {
+    try {
+      const categorias = await this.prisma.tb_categorias.findMany({
+        orderBy: {
+          nombre_cat: 'asc',
+        },
+      });
 
+      return categorias;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 5, search = '' } = paginationDto;
 

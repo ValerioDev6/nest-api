@@ -46,6 +46,19 @@ export class MarcasService {
       this.handleExceptions(error);
     }
   }
+  async findComboBoxAll() {
+    try {
+      const marcas = await this.prisma.tb_marcas.findMany({
+        orderBy: {
+          nombre_marca: 'asc',
+        },
+      });
+
+      return marcas;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
 
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 5, search = '' } = paginationDto;

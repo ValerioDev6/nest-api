@@ -198,7 +198,6 @@ model tb_productos {
   stock               Int
   id_categoria        String?                      @db.VarChar(36)
   fecha_creacion      DateTime?                    @default(now()) @db.Timestamp(0)
-  id_proveedor        String?                      @db.VarChar(36)
   id_marca            String?                      @db.VarChar(36)
   is_active           Boolean
   precio_compra       Decimal                      @db.Decimal(10, 2)
@@ -216,14 +215,12 @@ model tb_productos {
   tb_tipo_propietario tb_tipo_propietario          @relation(fields: [id_tipo_propietario], references: [id_tipo_propietario], onDelete: NoAction, onUpdate: NoAction, map: "fk_producto_tipo_propietario")
   tb_categorias       tb_categorias?               @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_1")
   tb_marcas           tb_marcas?                   @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_2")
-  tb_proveedores      tb_proveedores?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_3")
   tb_sucursales       tb_sucursales?               @relation(fields: [id_sucursal], references: [id_sucursal], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_4")
   tb_ventas           tb_ventas[]
 
   @@index([id_tipo_propietario], map: "fk_producto_tipo_propietario")
   @@index([id_categoria], map: "id_categoria")
   @@index([id_marca], map: "id_marca")
-  @@index([id_proveedor], map: "id_proveedor")
   @@index([id_sucursal], map: "id_sucursal")
 }
 
@@ -234,7 +231,6 @@ model tb_proveedores {
   created_at       DateTime?                        @default(now()) @db.Timestamp(0)
   updated_at       DateTime?                        @default(now()) @db.Timestamp(0)
   nombre_comercial String?                          @db.VarChar(100)
-  tb_productos     tb_productos[]
   tb_personas      tb_personas?                     @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
 
   @@index([id_persona], map: "id_persona")
