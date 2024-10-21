@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrinterService } from 'src/printer/printer.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { getHelloWordReport, getMarcasReport } from 'src/reports/pdf';
+import { getProductosReport } from 'src/reports/pdf/productos.report';
 
 @Injectable()
 export class BasicReportsService {
@@ -39,5 +40,28 @@ export class BasicReportsService {
       console.error('Error generating PDF:', error);
       throw new Error('Failed to generate PDF report');
     }
+  }
+
+  async getProductosReportPdf() {
+    try {
+      const productos = await this.prisma.tb_productos.findMany({
+        include: {
+          tb_marcas: true,
+          tb_categorias: true,
+          tb_tipo_propietario: true,
+          tb_sucursales: true
+        },
+        orderBy: {
+          nombre_producto: 'asc',
+        },
+      });
+
+      const docDefinition = getProductosReport({ productos });
+      return this.printerService.createPdf(docDefinition);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw new Error('Failed to generate PDF report');
+    }
+    
   }
 }

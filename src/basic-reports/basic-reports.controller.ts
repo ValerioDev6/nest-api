@@ -14,4 +14,14 @@ export class BasicReportsController {
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
+
+  
+  @Get('productos')
+  async getProductos(@Res() response: Response) {
+    const pdfDoc = await this.basicReportsService.getProductosReportPdf();
+    response.setHeader('Content-Type', 'application/pdf');
+    pdfDoc.info.Title = 'Productos Reportes';
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
 }
