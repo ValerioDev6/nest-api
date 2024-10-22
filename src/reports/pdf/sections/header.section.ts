@@ -2,9 +2,9 @@ import { Content } from 'pdfmake/interfaces';
 import { DateFormatter } from 'src/helpers';
 
 const logo: Content = {
-  image: 'src/assets/logo-icasestore.png',
-  width: 100,
-  height: 100,
+  image: 'src/assets/icases-store-v1.png',
+  width: 150,
+  height: 150,
   alignment: 'center',
   fit: [80, 80],
   margin: [0, 10, 0, 20],
@@ -26,8 +26,8 @@ export const headerSection = (options: HeaderOptions): Content => {
     ? {
         text: DateFormatter.getDDMMMMYYYY(new Date()),
         alignment: 'right',
-        margin: [20, 30],
-        width: 150,
+        margin: [40, 30],
+        width: 180,
       }
     : null;
 

@@ -45,11 +45,33 @@ export class BasicReportsService {
   async getProductosReportPdf() {
     try {
       const productos = await this.prisma.tb_productos.findMany({
-        include: {
-          tb_marcas: true,
-          tb_categorias: true,
-          tb_tipo_propietario: true,
-          tb_sucursales: true
+        select: {
+          nombre_producto: true,
+          stock: true,
+          precio_compra: true,
+          precio_venta: true,
+          fecha_ingreso: true,
+          estado_produto: true,
+          tb_categorias: {
+            select: {
+              nombre_cat: true,
+            },
+          },
+          tb_marcas: {
+            select: {
+              nombre_marca: true,
+            },
+          },
+          tb_sucursales: {
+            select: {
+              nombre_sucursal: true,
+            },
+          },
+          tb_tipo_propietario: {
+            select: {
+              descripcion: true,
+            },
+          },
         },
         orderBy: {
           nombre_producto: 'asc',
@@ -62,6 +84,5 @@ export class BasicReportsService {
       console.error('Error generating PDF:', error);
       throw new Error('Failed to generate PDF report');
     }
-    
   }
 }

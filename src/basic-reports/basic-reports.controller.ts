@@ -15,7 +15,6 @@ export class BasicReportsController {
     pdfDoc.end();
   }
 
-  
   @Get('productos')
   async getProductos(@Res() response: Response) {
     const pdfDoc = await this.basicReportsService.getProductosReportPdf();

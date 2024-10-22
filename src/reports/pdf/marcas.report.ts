@@ -175,9 +175,9 @@ export const getMarcasReport = (options: ReportOptions): TDocumentDefinitions =>
   }
 
   return {
-    pageOrientation: 'landscape',
+    pageOrientation: 'portrait',
     header: headerSection({
-      title: title ?? 'ICASE`S STORE REPORTE DE MARCAS',
+      title: title ?? 'REPORTE DE MARCAS',
       subtitle: subTitle ?? 'Listado de marcas',
     }),
     footer: footerSection,
