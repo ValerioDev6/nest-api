@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Workbook } from 'exceljs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { getMarcasExcelReport } from 'src/reports/excel';
+import { getProductoExcelReport } from 'src/reports/excel/producto.report';
 // import { Response } from 'express';
 // import puppeteer from 'puppeteer';
 
@@ -147,6 +148,49 @@ export class BasicReportsExcelService {
     } catch (error) {
       console.error('Error generating Excel:', error);
       throw new Error('Failed to generate Excel report');
+    }
+  }
+
+  async getProductosReportExcel(): Promise<Workbook> {
+    try {
+      const productos = await this.prisma.tb_productos.findMany({
+        select: {
+          nombre_producto: true,
+          stock: true,
+          precio_compra: true,
+          precio_venta: true,
+          fecha_ingreso: true,
+          estado_produto: true,
+          tb_categorias: {
+            select: {
+              nombre_cat: true,
+            },
+          },
+          tb_marcas: {
+            select: {
+              nombre_marca: true,
+            },
+          },
+          tb_sucursales: {
+            select: {
+              nombre_sucursal: true,
+            },
+          },
+          tb_tipo_propietario: {
+            select: {
+              descripcion: true,
+            },
+          },
+        },
+        orderBy: {
+          nombre_producto: 'asc',
+        },
+      });
+
+      return await getProductoExcelReport({ productos });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw new Error('Failed to generate PDF report');
     }
   }
 }

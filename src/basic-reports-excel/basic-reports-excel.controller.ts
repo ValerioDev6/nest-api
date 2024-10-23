@@ -19,4 +19,21 @@ export class BasicReportsExcelController {
     await workbook.xlsx.write(response);
     response.end();
   }
+
+  @Get('productos')
+  async getProductosExcel(@Res() response: Response) {
+    const workbook = await this.basicReportsExcelService.getProductosReportExcel();
+
+    response.setHeader(
+      'Content-Type',
+
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    response.setHeader('Content-Disposition', 'attachment; filename=productos-report.xlsx');
+
+    await workbook.xlsx.write(response);
+
+    response.end();
+  }
 }
