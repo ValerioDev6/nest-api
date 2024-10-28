@@ -13,5 +13,5 @@ export class PaginationDto {
   limit?: number;
 
   @IsOptional()
-  search?: string; // Agrega esta línea
+  search?: string;
 }

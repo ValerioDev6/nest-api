@@ -17,11 +17,13 @@ model tb_categorias {
 }
 
 model tb_cliente {
-  id_cliente  String       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  id_persona  String?      @db.VarChar(36)
-  tb_personas tb_personas? @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_cliente_ibfk_1")
-  tb_pedidos  tb_pedidos[]
-  tb_ventas   tb_ventas[]
+  id_cliente     String       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  id_persona     String?      @db.VarChar(36)
+  estado         Boolean?     @default(true)
+  fecha_registro DateTime?    @default(now()) @db.DateTime(0)
+  tb_personas    tb_personas? @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_cliente_ibfk_1")
+  tb_pedidos     tb_pedidos[]
+  tb_ventas      tb_ventas[]
 
   @@index([id_persona], map: "id_persona")
 }

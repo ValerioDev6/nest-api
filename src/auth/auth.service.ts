@@ -58,12 +58,8 @@ export class AuthService {
       },
     });
 
-    const payload: JwtPayload = { id: nuevoPersonal.id_personal };
-    const token = await this.getJwtToken(payload);
-
     return {
       user: nuevoPersonal,
-      access_token: token,
     };
   }
 

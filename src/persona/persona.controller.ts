@@ -16,7 +16,20 @@ export class PersonaController {
   findAll() {
     return this.personaService.findAll();
   }
+  @Get('personal')
+  getPersonasPersonalCombo() {
+    return this.personaService.getPersonasByTipo(PersonaService.TIPO_PERSONA.PERSONAL);
+  }
 
+  @Get('cliente')
+  getPersonasClienteCombo() {
+    return this.personaService.getPersonasByTipo(PersonaService.TIPO_PERSONA.CLIENTE);
+  }
+
+  @Get('proveedor')
+  getPersonasProveedoresCombo() {
+    return this.personaService.getPersonasByTipo(PersonaService.TIPO_PERSONA.PROVEEDOR);
+  }
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.personaService.findOne(+id);

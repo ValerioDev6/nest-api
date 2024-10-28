@@ -18,6 +18,11 @@ export class RolesController {
     return this.rolesService.findAll(paginationDto);
   }
 
+  @Get('combo')
+  findAllRolCombo() {
+    return this.rolesService.findAllCombo();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.rolesService.findOne(id);

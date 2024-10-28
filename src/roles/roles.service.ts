@@ -32,7 +32,18 @@ export class RolesService {
       this.handleExceptions(error);
     }
   }
-
+  async findAllCombo() {
+    try {
+      const roles = await this.prisma.tb_rol.findMany({
+        orderBy: {
+          nombre_rol: 'asc',
+        },
+      });
+      return roles;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 5, search = '' } = paginationDto;
 

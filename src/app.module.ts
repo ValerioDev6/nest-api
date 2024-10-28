@@ -25,6 +25,10 @@ import { BasicReportsModule } from './basic-reports/basic-reports.module';
 import { PrinterModule } from './printer/printer.module';
 import { BasicReportsExcelModule } from './basic-reports-excel/basic-reports-excel.module';
 import { TipoPropietarioModule } from './tipo-propietario/tipo-propietario.module';
+import { InventarioModule } from './inventario/inventario.module';
+import { MovimientosModule } from './movimientos/movimientos.module';
+import { VentasModule } from './ventas/ventas.module';
+import { ComprasModule } from './compras/compras.module';
 
 @Module({
   imports: [
@@ -53,6 +57,10 @@ import { TipoPropietarioModule } from './tipo-propietario/tipo-propietario.modul
     PrinterModule,
     BasicReportsExcelModule,
     TipoPropietarioModule,
+    InventarioModule,
+    MovimientosModule,
+    VentasModule,
+    ComprasModule,
   ],
   controllers: [],
   providers: [PrismaService],

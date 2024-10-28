@@ -1,26 +1,54 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTipoPersonaDto } from './dto/create-tipo-persona.dto';
-import { UpdateTipoPersonaDto } from './dto/update-tipo-persona.dto';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TipoPersonaService {
-  create(createTipoPersonaDto: CreateTipoPersonaDto) {
-    return 'This action adds a new tipoPersona';
+  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger('TipoPersonaService');
+
+  async findAllCombo() {
+    try {
+      const tiposPersonas = await this.prisma.tb_tipo_persona.findMany({
+        orderBy: {
+          tipo_persona: 'asc',
+        },
+      });
+
+      return tiposPersonas;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all tipoPersona`;
-  }
+  private handleExceptions(error: any) {
+    this.logger.error(error);
 
-  findOne(id: number) {
-    return `This action returns a #${id} tipoPersona`;
-  }
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002':
+          throw new BadRequestException('Ya existe un registro con esos datos únicos');
+        case 'P2014':
+          throw new BadRequestException('El registro viola una restricción de relación');
+        case 'P2003':
+          throw new BadRequestException('El registro viola una restricción de clave foránea');
+        case 'P2025':
+          throw new NotFoundException('No se encontró el registro para actualizar o eliminar');
+      }
+    }
 
-  update(id: number, updateTipoPersonaDto: UpdateTipoPersonaDto) {
-    return `This action updates a #${id} tipoPersona`;
-  }
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} tipoPersona`;
+    throw new InternalServerErrorException(
+      'Ocurrió un error inesperado. Por favor, contacte al administrador.',
+    );
   }
 }

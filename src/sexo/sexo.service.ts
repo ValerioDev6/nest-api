@@ -5,8 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateSexoDto } from './dto/create-sexo.dto';
-import { UpdateSexoDto } from './dto/update-sexo.dto';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
@@ -16,8 +15,18 @@ export class SexoService {
   constructor(private readonly prisma: PrismaService) {}
   private readonly logger = new Logger('SexoService');
 
-  create(createSexoDto: CreateSexoDto) {
-    return 'This action adds a new sexo';
+  async findAllCombo() {
+    try {
+      const tiposGeneros = await this.prisma.tb_sexo.findMany({
+        orderBy: {
+          sexo: 'asc',
+        },
+      });
+
+      return tiposGeneros;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -58,18 +67,6 @@ export class SexoService {
     } catch (error) {
       this.handleExceptions(error);
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} sexo`;
-  }
-
-  update(id: number, updateSexoDto: UpdateSexoDto) {
-    return `This action updates a #${id} sexo`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} sexo`;
   }
 
   private handleExceptions(error: any) {

@@ -1,21 +1,25 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePersonaDto } from './dto/create-persona.dto';
 import { UpdatePersonaDto } from './dto/update-persona.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { v4 as uuidv4 } from 'uuid';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PersonaService {
   constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger('PersonaService');
 
   async create(createPersonaDto: CreatePersonaDto) {
     try {
       return await this.prisma.$transaction(async (prisma) => {
-        const id_persona = uuidv4();
-
         const newPersona = await prisma.tb_personas.create({
           data: {
-            id_persona,
             ...createPersonaDto,
           },
           include: {
@@ -31,14 +35,36 @@ export class PersonaService {
         return newPersona;
       });
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new BadRequestException('Ya existe una persona con esos datos únicos');
-      }
-      throw new InternalServerErrorException('Error al crear la persona');
+      this.handleExceptions(error);
     }
   }
   findAll() {
     return `This action returns all persona`;
+  }
+
+  // Obtener personas por tipo para combos/selects
+  async getPersonasByTipo(tipoPersona: string) {
+    try {
+      const personas = await this.prisma.tb_personas.findMany({
+        where: {
+          id_tipo_persona: tipoPersona,
+        },
+        select: {
+          id_persona: true,
+          nombres: true,
+          apellido_paterno: true,
+          apellido_materno: true,
+        },
+      });
+
+      return personas.map((persona) => ({
+        id_persona: persona.id_persona,
+        nombre_completo:
+          `${persona.nombres} ${persona.apellido_paterno} ${persona.apellido_materno}`.trim(),
+      }));
+    } catch (error) {
+      throw new Error(`Error al obtener personas: ${error.message}`);
+    }
   }
 
   findOne(id: number) {
@@ -52,4 +78,35 @@ export class PersonaService {
   remove(id: number) {
     return `This action removes a #${id} persona`;
   }
+
+  private handleExceptions(error: any) {
+    this.logger.error(error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002':
+          throw new BadRequestException('Ya existe un registro con esos datos únicos');
+        case 'P2014':
+          throw new BadRequestException('El registro viola una restricción de relación');
+        case 'P2003':
+          throw new BadRequestException('El registro viola una restricción de clave foránea');
+        case 'P2025':
+          throw new NotFoundException('No se encontró el registro para actualizar o eliminar');
+      }
+    }
+
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+
+    throw new InternalServerErrorException(
+      'Ocurrió un error inesperado. Por favor, contacte al administrador.',
+    );
+  }
+
+  static readonly TIPO_PERSONA = {
+    PERSONAL: 'df091edc-83c7-11ef-8655-00e04cf010f7', // Reemplazar con el UUID real
+    CLIENTE: 'df09389f-83c7-11ef-8655-00e04cf010f7', // Reemplazar con el UUID real
+    PROVEEDOR: 'df093a97-83c7-11ef-8655-00e04cf010f7', // Reemplazar con el UUID real
+  };
 }

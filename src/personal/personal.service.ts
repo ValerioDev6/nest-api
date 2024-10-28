@@ -18,46 +18,50 @@ export class PersonalService {
   private readonly logger = new Logger('PersonalService');
 
   async create(createPersonalDto: CreatePersonalDto) {
-    const { id_persona, contrasenia, ...restPersonalData } = createPersonalDto;
+    const { contrasenia, ...rest } = createPersonalDto;
 
     try {
-      // Usamos una transacción para asegurar la integridad de los datos
-      return await this.prisma.$transaction(async (prisma) => {
-        // Verificamos si la persona existe
-        const persona = await prisma.tb_personas.findUnique({
-          where: { id_persona },
-        });
-
-        if (!persona) {
-          throw new BadRequestException('La persona asociada no existe');
-        }
-
-        // Encriptamos la contraseña
-        const hashedPassword = await bcrypt.hash(contrasenia, 10);
-
-        // Creamos el personal
-        const newPersonal = await prisma.tb_personal.create({
-          data: {
-            ...restPersonalData,
-            id_persona,
-            contrasenia: hashedPassword,
-          },
-          include: {
-            tb_personas: true,
-            tb_rol: true,
-          },
-        });
-
-        return newPersonal;
+      const personalExiste = await this.prisma.tb_personal.findFirst({
+        where: { email: rest.email },
+        select: { id_personal: true },
       });
+
+      if (personalExiste) {
+        throw new BadRequestException('Ya existe un personal con este email');
+      }
+
+      const hashedPassword = await bcrypt.hash(contrasenia, 10);
+      const nuevoPersonal = await this.prisma.tb_personal.create({
+        data: {
+          ...rest,
+          contrasenia: hashedPassword,
+        },
+        select: {
+          id_personal: true,
+          email: true,
+          estado: true,
+          personal_img: true,
+          tb_personas: {
+            select: {
+              id_persona: true,
+              nombres: true,
+              apellido_paterno: true,
+              apellido_materno: true,
+              fecha_nacimiento: true,
+            },
+          },
+          tb_rol: {
+            select: {
+              id_rol: true,
+              nombre_rol: true,
+            },
+          },
+        },
+      });
+
+      return nuevoPersonal;
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      if (error.code === 'P2002') {
-        throw new BadRequestException('Ya existe un personal con ese email');
-      }
-      throw new InternalServerErrorException('Error al crear el personal');
+      this.handleExceptions(error);
     }
   }
 
@@ -149,7 +153,9 @@ export class PersonalService {
       await this.prisma.tb_personal.delete({
         where: { id_personal: id },
       });
-
+      if (!personal) {
+        throw new NotFoundException(`Personal with Id ${id} not found`);
+      }
       return { message: `Personal con ID ${id} eliminado correctamente` };
     } catch (error) {
       this.handleExceptions(error);
