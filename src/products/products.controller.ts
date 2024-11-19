@@ -18,6 +18,11 @@ export class ProductsController {
     return this.productsService.findAll(paginationDto);
   }
 
+  @Get('combo')
+  findAllPersonalCombo() {
+    return this.productsService.findAllCombo();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);

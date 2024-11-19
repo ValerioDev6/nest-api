@@ -125,6 +125,29 @@ export class ProductsService {
     }
   }
 
+  async findAllCombo() {
+    try {
+      const productos = await this.prisma.tb_productos.findMany({
+        orderBy: {
+          nombre_producto: 'asc',
+        },
+        select: {
+          id_producto: true,
+          nombre_producto: true,
+          precio_venta: true,
+          stock: true,
+          tb_marcas: {
+            select: {
+              nombre_marca: true,
+            },
+          },
+        },
+      });
+      return productos;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
   async findOne(id: string) {
     try {
       const producto = await this.prisma.tb_productos.findUnique({

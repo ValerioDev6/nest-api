@@ -29,6 +29,7 @@ import { InventarioModule } from './inventario/inventario.module';
 import { MovimientosModule } from './movimientos/movimientos.module';
 import { VentasModule } from './ventas/ventas.module';
 import { ComprasModule } from './compras/compras.module';
+import { MetodoPagosModule } from './metodo-pagos/metodo-pagos.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ComprasModule } from './compras/compras.module';
     MovimientosModule,
     VentasModule,
     ComprasModule,
+    MetodoPagosModule,
   ],
   controllers: [],
   providers: [PrismaService],

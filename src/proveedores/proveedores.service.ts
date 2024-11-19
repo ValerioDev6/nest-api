@@ -16,8 +16,51 @@ export class ProveedoresService {
   constructor(private readonly prisma: PrismaService) {}
   private readonly logger = new Logger('ProveedoresService');
 
-  create(createProveedoreDto: CreateProveedoreDto) {
-    return 'This action adds a new proveedore';
+  async create(createProveedoreDto: CreateProveedoreDto) {
+    try {
+      return await this.prisma.$transaction(async (prisma) => {
+        const newProveedor = await prisma.tb_proveedores.create({
+          data: {
+            ...createProveedoreDto,
+          },
+        });
+
+        return newProveedor;
+      });
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+  async findAllComboBox() {
+    try {
+      const proveedores = await this.prisma.tb_proveedores.findMany({
+        orderBy: {
+          tb_personas: {
+            nombres: 'asc',
+          },
+        },
+        select: {
+          id_proveedor: true,
+          tb_personas: {
+            select: {
+              numero_documento: true,
+              correo: true,
+              telefono: true,
+              nombres: true,
+              tb_direccion: {
+                select: {
+                  direccion: true,
+                },
+              }, // Incluye tb_direccion directamente en select
+            },
+          },
+        },
+      });
+
+      return proveedores;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   async findAll(paginationDto: PaginationDto) {

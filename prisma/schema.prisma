@@ -8,12 +8,13 @@ datasource db {
 }
 
 model tb_categorias {
-  id_categoria String         @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombre_cat   String         @unique(map: "nombre_cat_UNIQUE") @db.VarChar(100)
-  estado       Boolean
-  created_at   DateTime?      @default(now()) @db.Timestamp(0)
-  updated_at   DateTime?      @default(now()) @db.Timestamp(0)
-  tb_productos tb_productos[]
+  id_categoria      String              @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  nombre_cat        String              @unique(map: "nombre_cat_UNIQUE") @db.VarChar(100)
+  estado            Boolean
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?           @default(now()) @db.Timestamp(0)
+  tb_detalle_compra tb_detalle_compra[]
+  tb_productos      tb_productos[]
 }
 
 model tb_cliente {
@@ -26,6 +27,43 @@ model tb_cliente {
   tb_ventas      tb_ventas[]
 
   @@index([id_persona], map: "id_persona")
+}
+
+model tb_compra {
+  id_compra         String              @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  id_metodo_pago    String?             @db.VarChar(36)
+  proveedor_id      String?             @db.VarChar(36)
+  proveedor_ruc     String?             @db.VarChar(15)
+  proveedor_correo  String?             @db.VarChar(100)
+  numero_documento  String?             @db.VarChar(20)
+  compra_subtotal   Decimal?            @db.Decimal(10, 2)
+  compra_igv        Decimal?            @db.Decimal(10, 2)
+  compra_total      Decimal?            @db.Decimal(10, 2)
+  compra_comentario String?             @db.Text
+  fecha_compra      DateTime?           @default(now()) @db.Timestamp(0)
+  tb_metodo_pago    tb_metodo_pago?     @relation(fields: [id_metodo_pago], references: [id_metodo_pago], onDelete: NoAction, onUpdate: NoAction, map: "tb_compra_ibfk_1")
+  tb_proveedores    tb_proveedores?     @relation(fields: [proveedor_id], references: [id_proveedor], onDelete: NoAction, onUpdate: NoAction, map: "tb_compra_ibfk_2")
+  tb_detalle_compra tb_detalle_compra[]
+
+  @@index([id_metodo_pago], map: "id_metodo_pago")
+  @@index([proveedor_id], map: "proveedor_id")
+}
+
+model tb_detalle_compra {
+  id_detalle_compra String         @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  id_compra         String?        @db.VarChar(36)
+  id_producto       String?        @db.VarChar(36)
+  id_categoria      String?        @db.VarChar(36)
+  cantidad          Int?
+  precio_unitario   Decimal?       @db.Decimal(10, 2)
+  subtotal          Decimal?       @db.Decimal(10, 2)
+  tb_compra         tb_compra?     @relation(fields: [id_compra], references: [id_compra], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_compra_ibfk_1")
+  tb_productos      tb_productos?  @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_compra_ibfk_2")
+  tb_categorias     tb_categorias? @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_compra_ibfk_3")
+
+  @@index([id_categoria], map: "id_categoria")
+  @@index([id_compra], map: "id_compra")
+  @@index([id_producto], map: "id_producto")
 }
 
 model tb_detalle_pedido {
@@ -95,6 +133,23 @@ model tb_inventario {
   @@index([id_sucursal], map: "id_sucursal")
 }
 
+model tb_kardex {
+  id_kardex        String                     @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  id_producto      String?                    @db.VarChar(36)
+  fecha_movimiento DateTime?                  @default(now()) @db.Timestamp(0)
+  tipo_movimiento  tb_kardex_tipo_movimiento?
+  tipo_documento   tb_kardex_tipo_documento?
+  numero_documento String?                    @db.VarChar(20)
+  cantidad         Int?
+  precio_unitario  Decimal?                   @db.Decimal(10, 2)
+  total            Decimal?                   @db.Decimal(10, 2)
+  stock_anterior   Int?
+  stock_actual     Int?
+  tb_productos     tb_productos?              @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction, map: "tb_kardex_ibfk_1")
+
+  @@index([id_producto], map: "id_producto")
+}
+
 model tb_marcas {
   id_marca     String         @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
   nombre_marca String         @unique(map: "nombre_marca_UNIQUE") @db.VarChar(100)
@@ -107,6 +162,9 @@ model tb_marcas {
 model tb_metodo_pago {
   id_metodo_pago     String      @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
   nombre_metodo_pago String      @db.VarChar(100)
+  descripcion        String?     @db.VarChar(255)
+  estado             Int?        @default(1) @db.TinyInt
+  tb_compra          tb_compra[]
   tb_ventas          tb_ventas[]
 }
 
@@ -211,9 +269,11 @@ model tb_productos {
   estado_produto      tb_productos_estado_produto? @default(Disponible)
   id_sucursal         String?                      @db.VarChar(36)
   id_tipo_propietario String                       @db.VarChar(36)
+  tb_detalle_compra   tb_detalle_compra[]
   tb_detalle_pedido   tb_detalle_pedido[]
   tb_detalle_venta    tb_detalle_venta[]
   tb_inventario       tb_inventario[]
+  tb_kardex           tb_kardex[]
   tb_tipo_propietario tb_tipo_propietario          @relation(fields: [id_tipo_propietario], references: [id_tipo_propietario], onDelete: NoAction, onUpdate: NoAction, map: "fk_producto_tipo_propietario")
   tb_categorias       tb_categorias?               @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_1")
   tb_marcas           tb_marcas?                   @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction, map: "tb_productos_ibfk_2")
@@ -233,6 +293,7 @@ model tb_proveedores {
   created_at       DateTime?                        @default(now()) @db.Timestamp(0)
   updated_at       DateTime?                        @default(now()) @db.Timestamp(0)
   nombre_comercial String?                          @db.VarChar(100)
+  tb_compra        tb_compra[]
   tb_personas      tb_personas?                     @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
 
   @@index([id_persona], map: "id_persona")
@@ -356,6 +417,16 @@ enum tb_proveedores_estado_proveedor {
   Activo
   Inactivo
   Suspendido
+}
+
+enum tb_kardex_tipo_movimiento {
+  ENTRADA
+  SALIDA
+}
+
+enum tb_kardex_tipo_documento {
+  COMPRA
+  VENTA
 }
 
 enum tb_productos_estado_produto {

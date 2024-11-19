@@ -92,10 +92,6 @@ export class AuthService {
   }
 
   async checkAuthStatus(user: tb_personal) {
-    // return {
-    //   ...user,
-    //   token: this.getJwtToken({ id: user.id_personal }),
-    // };
     const { id_personal, email, estado, personal_img, id_rol, id_persona } = user;
     const personaInfo = id_persona
       ? await this.prisma.tb_personas.findUnique({
@@ -120,28 +116,6 @@ export class AuthService {
       persona: personaInfo,
       access_token: tokens,
     };
-  }
-
-  async getTokens(userId: string) {
-    const payload: JwtPayload = { id: userId };
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '15m', // Token de acceso de corta duración
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '7d', // Refresh token de larga duración
-      }),
-    ]);
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
-  }
-  private getJwtToken(payload: JwtPayload) {
-    return this.jwtService.sign(payload);
   }
 
   async changePassword(idPersonal: string, changePasswordDto: ChangePasswordDto) {
@@ -175,5 +149,8 @@ export class AuthService {
       ok: true,
       message: 'Contraseña actualizada exitosamente',
     };
+  }
+  private getJwtToken(payload: JwtPayload) {
+    return this.jwtService.sign(payload);
   }
 }

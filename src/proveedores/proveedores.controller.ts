@@ -13,6 +13,11 @@ export class ProveedoresController {
     return this.proveedoresService.create(createProveedoreDto);
   }
 
+  @Get('combo')
+  findAllProveedoresCombo() {
+    return this.proveedoresService.findAllComboBox();
+  }
+
   @Get()
   findAll(@Query() paginationDto: PaginationDto) {
     return this.proveedoresService.findAll(paginationDto);

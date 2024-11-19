@@ -1,34 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
 import { ComprasService } from './compras.service';
-import { CreateCompraDto } from './dto/create-compra.dto';
-import { UpdateCompraDto } from './dto/update-compra.dto';
+import { RequestCompraDto } from './dto/create-compra.dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Controller('compras')
 export class ComprasController {
   constructor(private readonly comprasService: ComprasService) {}
 
   @Post()
-  create(@Body() createCompraDto: CreateCompraDto) {
+  create(@Body() createCompraDto: RequestCompraDto) {
     return this.comprasService.create(createCompraDto);
   }
 
   @Get()
-  findAll() {
-    return this.comprasService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.comprasService.findAll(paginationDto);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.comprasService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompraDto: UpdateCompraDto) {
-    return this.comprasService.update(+id, updateCompraDto);
+    return this.comprasService.findOne(id);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.comprasService.remove(+id);
+    return this.comprasService.remove(id);
   }
 }

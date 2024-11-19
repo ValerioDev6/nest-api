@@ -15,6 +15,7 @@ export class AuthController {
   register(@Body() createPersonalDto: CreatePersonalDto) {
     return this.authService.register(createPersonalDto);
   }
+
   @Post('login')
   async login(@Body() loginPersonalDto: LoginPersonalDto) {
     return this.authService.login(loginPersonalDto);
