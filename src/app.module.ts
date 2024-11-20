@@ -30,6 +30,8 @@ import { MovimientosModule } from './movimientos/movimientos.module';
 import { VentasModule } from './ventas/ventas.module';
 import { ComprasModule } from './compras/compras.module';
 import { MetodoPagosModule } from './metodo-pagos/metodo-pagos.module';
+import { DetalleCompraModule } from './detalle-compra/detalle-compra.module';
+import { DetalleVentaModule } from './detalle-venta/detalle-venta.module';
 
 @Module({
   imports: [
@@ -63,6 +65,8 @@ import { MetodoPagosModule } from './metodo-pagos/metodo-pagos.module';
     VentasModule,
     ComprasModule,
     MetodoPagosModule,
+    DetalleCompraModule,
+    DetalleVentaModule,
   ],
   controllers: [],
   providers: [PrismaService],
