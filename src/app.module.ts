@@ -21,17 +21,17 @@ import { TipoPersonaModule } from './tipo-persona/tipo-persona.module';
 import { TipoTelefonoModule } from './tipo-telefono/tipo-telefono.module';
 import { TipoViaModule } from './tipo-via/tipo-via.module';
 import { TipoZonaModule } from './tipo-zona/tipo-zona.module';
-import { BasicReportsModule } from './basic-reports/basic-reports.module';
+import { BasicReportsModule } from './reports-pdf/basic-reports.module';
 import { PrinterModule } from './printer/printer.module';
-import { BasicReportsExcelModule } from './basic-reports-excel/basic-reports-excel.module';
+import { BasicReportsExcelModule } from './report-excel/basic-reports-excel.module';
 import { TipoPropietarioModule } from './tipo-propietario/tipo-propietario.module';
 import { InventarioModule } from './inventario/inventario.module';
 import { MovimientosModule } from './movimientos/movimientos.module';
 import { VentasModule } from './ventas/ventas.module';
 import { ComprasModule } from './compras/compras.module';
 import { MetodoPagosModule } from './metodo-pagos/metodo-pagos.module';
-import { DetalleCompraModule } from './detalle-compra/detalle-compra.module';
-import { DetalleVentaModule } from './detalle-venta/detalle-venta.module';
+import { KardexModule } from './kardex/kardex.module';
+import { ReportHtmlModule } from './report-html/report-html.module';
 
 @Module({
   imports: [
@@ -65,8 +65,8 @@ import { DetalleVentaModule } from './detalle-venta/detalle-venta.module';
     VentasModule,
     ComprasModule,
     MetodoPagosModule,
-    DetalleCompraModule,
-    DetalleVentaModule,
+    KardexModule,
+    ReportHtmlModule,
   ],
   controllers: [],
   providers: [PrismaService],

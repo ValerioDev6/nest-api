@@ -26,4 +26,9 @@ export class ComprasController {
   remove(@Param('id') id: string) {
     return this.comprasService.remove(id);
   }
+
+  @Get(':id/detalles')
+  findDetallesByCompraId(@Param('id') id: string, @Query() paginationDto: PaginationDto) {
+    return this.comprasService.findDetallesByCompraId(id, paginationDto);
+  }
 }

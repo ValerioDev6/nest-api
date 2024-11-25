@@ -78,7 +78,7 @@ export class ProductsService {
         this.prisma.tb_productos.findMany({
           skip: (page - 1) * limit,
           take: limit,
-          orderBy: { nombre_producto: 'asc' },
+          orderBy: { fecha_creacion: 'desc' },
           include: {
             tb_marcas: {
               select: { nombre_marca: true },
@@ -152,6 +152,12 @@ export class ProductsService {
     try {
       const producto = await this.prisma.tb_productos.findUnique({
         where: { id_producto: id },
+        include: {
+          tb_tipo_propietario: true,
+          tb_categorias: true,
+          tb_marcas: true,
+          tb_sucursales: true,
+        },
       });
 
       if (!producto) {
@@ -174,9 +180,42 @@ export class ProductsService {
         throw new NotFoundException(`Producto with ID ${id} not found`);
       }
 
+      const { id_categoria, id_marca, id_sucursal, id_tipo_propietario, ...restUpdateData } =
+        updateProductDto;
+
       const updateProducto = await this.prisma.tb_productos.update({
-        where: { id_producto: id },
-        data: { ...updateProductDto },
+        where: {
+          id_producto: id,
+        },
+        data: {
+          ...restUpdateData,
+          tb_categorias: id_categoria
+            ? {
+                connect: { id_categoria },
+              }
+            : undefined,
+          tb_marcas: id_marca
+            ? {
+                connect: { id_marca },
+              }
+            : undefined,
+          tb_sucursales: id_sucursal
+            ? {
+                connect: { id_sucursal },
+              }
+            : undefined,
+          tb_tipo_propietario: id_tipo_propietario
+            ? {
+                connect: { id_tipo_propietario },
+              }
+            : undefined,
+        },
+        include: {
+          tb_categorias: true,
+          tb_marcas: true,
+          tb_sucursales: true,
+          tb_tipo_propietario: true,
+        },
       });
 
       return updateProducto;
@@ -184,7 +223,6 @@ export class ProductsService {
       this.handleExceptions(error);
     }
   }
-
   async remove(id: string) {
     try {
       const producto = await this.prisma.tb_productos.findUnique({

@@ -10,33 +10,33 @@ const logo: Content = {
   margin: [0, 10, 0, 20],
 };
 
+const currentDate: Content = {
+  text: DateFormatter.getDDMMMMYYYY(new Date()),
+  alignment: 'right',
+  margin: [20, 30],
+  width: 150,
+};
+
 interface HeaderOptions {
   title?: string;
-  subtitle?: string;
+  subTitle?: string;
   showLogo?: boolean;
   showDate?: boolean;
 }
 
-export const headerSection = (options: HeaderOptions): Content => {
-  const { title, subtitle, showLogo = true, showDate = true } = options;
+export const headerVerticalSection = (options: HeaderOptions): Content => {
+  const { title, subTitle, showLogo = true, showDate = true } = options;
 
   const headerLogo: Content = showLogo ? logo : null;
-  const headerDate: Content = showDate
-    ? {
-        text: DateFormatter.getDDMMMMYYYY(new Date()),
-        alignment: 'right',
-        margin: [40, 30],
-        width: 180,
-      }
-    : null;
+  const headerDate: Content = showDate ? currentDate : null;
 
-  const headerSubtitle: Content = subtitle
+  const headerSubTitle: Content = subTitle
     ? {
-        text: subtitle,
+        text: subTitle,
         alignment: 'center',
         margin: [0, 2, 0, 0],
         style: {
-          fontSize: 14,
+          fontSize: 16,
           bold: true,
         },
       }
@@ -50,11 +50,11 @@ export const headerSection = (options: HeaderOptions): Content => {
             alignment: 'center',
             margin: [0, 15, 0, 0],
             style: {
-              fontSize: 15,
               bold: true,
+              fontSize: 22,
             },
           },
-          headerSubtitle,
+          headerSubTitle,
         ],
       }
     : null;

@@ -1,18 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { tb_categorias as Categorias } from '@prisma/client';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
-import { tb_marcas as Marca } from '@prisma/client';
-import { footerSection } from './sections/footer.section';
 import { headerVerticalSection } from './sections/header_vertical';
+import { footerSection } from './sections/footer.section';
 
 interface ReportOptions {
   title?: string;
   subTitle?: string;
-  marcas: Marca[];
+  categorias: Categorias[];
 }
 
-export const getMarcasReport = (options: ReportOptions): TDocumentDefinitions => {
-  const { title, subTitle, marcas } = options;
-
+export const getCategoriasReport = (options: ReportOptions): TDocumentDefinitions => {
+  const { title, subTitle, categorias } = options;
   const formatEstado = (estado: boolean) => ({
     text: estado ? 'Activo' : 'Inactivo',
     style: {
@@ -32,13 +30,13 @@ export const getMarcasReport = (options: ReportOptions): TDocumentDefinitions =>
   };
 
   const rowsPerPage = 15;
-  const pages = Math.ceil(marcas.length / rowsPerPage);
+  const pages = Math.ceil(categorias.length / rowsPerPage);
   const content = [];
 
   for (let pageIndex = 0; pageIndex < pages; pageIndex++) {
     const start = pageIndex * rowsPerPage;
     const end = start + rowsPerPage;
-    const marcasPage = marcas.slice(start, end);
+    const categoriasPage = categorias.slice(start, end);
 
     content.push({
       layout: {
@@ -74,14 +72,14 @@ export const getMarcasReport = (options: ReportOptions): TDocumentDefinitions =>
         body: [
           [
             {
-              text: 'Nombre Marca',
+              text: 'Nombre Categoria',
               fillColor: '#1a237e',
               color: 'white',
               style: { bold: true },
               margin: [2, 1],
             },
             {
-              text: 'Estado Marca',
+              text: 'Estado Categoria',
               fillColor: '#1a237e',
               color: 'white',
               style: { bold: true },
@@ -95,9 +93,9 @@ export const getMarcasReport = (options: ReportOptions): TDocumentDefinitions =>
               margin: [2, 1],
             },
           ],
-          ...marcasPage.map((marca) => [
+          ...categoriasPage.map((marca) => [
             {
-              text: marca.nombre_marca,
+              text: marca.nombre_cat,
               margin: [2, 1],
             },
             {
@@ -126,7 +124,7 @@ export const getMarcasReport = (options: ReportOptions): TDocumentDefinitions =>
               [
                 { text: 'Total:', alignment: 'right', bold: true, margin: [0, 5, 10, 0] },
                 {
-                  text: `${marcas.length} marcas`,
+                  text: `${categorias.length} categorias`,
                   alignment: 'left',
                   bold: true,
                   margin: [0, 5, 0, 0],
@@ -148,8 +146,8 @@ export const getMarcasReport = (options: ReportOptions): TDocumentDefinitions =>
   return {
     pageOrientation: 'portrait',
     header: headerVerticalSection({
-      title: title ?? 'REPORTE DE MARCAS',
-      subTitle: subTitle ?? 'Listado de marcas',
+      title: title ?? 'REPORTE DE CATEGORIAS',
+      subTitle: subTitle ?? 'Listado de categorias',
     }),
     footer: footerSection,
     pageMargins: [40, 100, 40, 80],

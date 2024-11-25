@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Workbook } from 'exceljs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { getMarcasExcelReport } from 'src/reports/excel';
+import { getCategoriasExcelReport, getMarcasExcelReport } from 'src/reports/excel';
 import { getProductoExcelReport } from 'src/reports/excel/producto.report';
 // import { Response } from 'express';
 // import puppeteer from 'puppeteer';
@@ -190,6 +190,23 @@ export class BasicReportsExcelService {
       return await getProductoExcelReport({ productos });
     } catch (error) {
       console.error('Error generating PDF:', error);
+      throw new Error('Failed to generate PDF report');
+    }
+  }
+
+  async getCategegoriasExcelReportData(): Promise<Workbook> {
+    try {
+      const categorias = await this.prisma.tb_categorias.findMany({
+        select: {
+          id_categoria: true,
+          nombre_cat: true,
+          estado: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+      return await getCategoriasExcelReport({ categorias });
+    } catch (error) {
       throw new Error('Failed to generate PDF report');
     }
   }

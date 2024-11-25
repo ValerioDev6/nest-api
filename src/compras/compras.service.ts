@@ -19,7 +19,7 @@ export class ComprasService {
   async create(requestCompra: RequestCompraDto) {
     this.logger.log('Iniciando registro de compra', { data: requestCompra });
 
-    return await this.prisma.$transaction(async (prisma) => {
+    return this.prisma.$transaction(async (prisma) => {
       try {
         // Verificar que vengan productos
         if (!requestCompra.detalles?.length) {
@@ -47,7 +47,6 @@ export class ComprasService {
             compra_igv: igv,
             compra_total: total,
             compra_comentario: requestCompra.compra_comentario,
-            // fecha_compra se genera automáticamente por el @default(now())
           },
         });
 
@@ -210,6 +209,71 @@ export class ComprasService {
         subtotal: detalle.subtotal,
       })),
     };
+  }
+
+  async findDetallesByCompraId(id: string, paginationDto: PaginationDto) {
+    const { page = 1, limit = 5 } = paginationDto;
+
+    try {
+      // Primero verificamos si la compra existe
+      const compraExists = await this.prisma.tb_compra.findUnique({
+        where: { id_compra: id },
+        select: { id_compra: true },
+      });
+
+      if (!compraExists) {
+        throw new NotFoundException(`Compra con ID ${id} no encontrada`);
+      }
+
+      // Obtenemos los detalles paginados
+      const [detalles, total] = await Promise.all([
+        this.prisma.tb_detalle_compra.findMany({
+          where: {
+            id_compra: id,
+          },
+          skip: (page - 1) * limit,
+          take: limit,
+          include: {
+            tb_productos: true,
+            tb_categorias: true,
+          },
+          orderBy: {
+            id_detalle_compra: 'asc',
+          },
+        }),
+        this.prisma.tb_detalle_compra.count({
+          where: {
+            id_compra: id,
+          },
+        }),
+      ]);
+
+      // Calculamos el monto total de los detalles
+      const montoTotal = detalles.reduce(
+        (sum, detalle) => sum + detalle.cantidad * Number(detalle.precio_unitario),
+        0,
+      );
+
+      return {
+        info: {
+          page,
+          limit,
+          total,
+          next: `${process.env.HOST_API}/compras/${id}/detalle?page=${page + 1}&limit=${limit}`,
+          prev:
+            page > 1
+              ? `${process.env.HOST_API}/compras/${id}/detalle?page=${page - 1}&limit=${limit}`
+              : null,
+        },
+        detalles,
+        resumen: {
+          cantidad_items: total,
+          monto_total: montoTotal,
+        },
+      };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   async remove(id: string) {

@@ -2,7 +2,7 @@ import { Controller, Get, Res } from '@nestjs/common';
 import { BasicReportsService } from './basic-reports.service';
 import { Response } from 'express';
 
-@Controller('basic-reports')
+@Controller('reports-pdf')
 export class BasicReportsController {
   constructor(private readonly basicReportsService: BasicReportsService) {}
 
@@ -20,6 +20,15 @@ export class BasicReportsController {
     const pdfDoc = await this.basicReportsService.getProductosReportPdf();
     response.setHeader('Content-Type', 'application/pdf');
     pdfDoc.info.Title = 'Productos Reportes';
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
+  @Get('categorias')
+  async getCategorias(@Res() response: Response) {
+    const pdfDoc = await this.basicReportsService.getCategoriasReportPdfData();
+    response.setHeader('Content-Type', 'application/pdf');
+    pdfDoc.info.Title = 'Categorias Reportes';
     pdfDoc.pipe(response);
     pdfDoc.end();
   }

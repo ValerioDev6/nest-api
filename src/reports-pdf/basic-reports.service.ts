@@ -3,6 +3,7 @@ import { PrinterService } from 'src/printer/printer.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { getHelloWordReport, getMarcasReport } from 'src/reports/pdf';
 import { getProductosReport } from 'src/reports/pdf/productos.report';
+import { getCategoriasReport } from '../reports/pdf/categorias.report';
 
 @Injectable()
 export class BasicReportsService {
@@ -82,6 +83,25 @@ export class BasicReportsService {
       return this.printerService.createPdf(docDefinition);
     } catch (error) {
       console.error('Error generating PDF:', error);
+      throw new Error('Failed to generate PDF report');
+    }
+  }
+
+  async getCategoriasReportPdfData() {
+    try {
+      const categorias = await this.prisma.tb_categorias.findMany({
+        select: {
+          id_categoria: true,
+          nombre_cat: true,
+          estado: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+
+      const docDefinition = getCategoriasReport({ categorias });
+      return this.printerService.createPdf(docDefinition);
+    } catch {
       throw new Error('Failed to generate PDF report');
     }
   }

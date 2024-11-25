@@ -1,51 +1,61 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateClienteDto } from './dto/create-cliente.dto';
-import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { CreateKardexDto } from './dto/create-kardex.dto';
+import { UpdateKardexDto } from './dto/update-kardex.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class ClienteService {
+export class KardexService {
   constructor(private readonly prisma: PrismaService) {}
-  private readonly logger = new Logger('ClienteService');
-  create(createClienteDto: CreateClienteDto) {
-    return 'This action adds a new cliente';
+  private readonly logger = new Logger('KardexService');
+  create(createKardexDto: CreateKardexDto) {
+    return 'This action adds a new kardex';
   }
+
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 10, search = '' } = paginationDto;
 
+    const whereCondition = search
+      ? {
+          OR: [
+            {
+              tb_productos: {
+                nombre_producto: {
+                  contains: search,
+                },
+              },
+            },
+          ],
+        }
+      : {};
+
     try {
-      const [cliente, total] = await Promise.all([
-        this.prisma.tb_cliente.findMany({
+      const [kardex, total] = await Promise.all([
+        this.prisma.tb_kardex.findMany({
           skip: (page - 1) * limit,
           take: limit,
-          orderBy: { fecha_registro: 'desc' },
-          where: {
-            tb_personas: {
-              nombres: {
-                contains: search,
+          orderBy: {
+            fecha_movimiento: 'desc',
+          },
+          where: whereCondition,
+          include: {
+            tb_productos: {
+              select: {
+                nombre_producto: true,
               },
             },
-          },
-          include: {
-            tb_personas: true,
           },
         }),
-        this.prisma.tb_cliente.count({
-          where: {
-            tb_personas: {
-              nombres: {
-                contains: search,
-              },
-            },
-          },
+        this.prisma.tb_kardex.count({
+          where: whereCondition,
         }),
       ]);
 
@@ -54,46 +64,36 @@ export class ClienteService {
           page,
           limit,
           total,
-          next: `${process.env.HOST_API}/cliente?page=${page + 1}&limit=${limit}&search=${search}`,
+          next: `${process.env.HOST_API}/kardex?page=${page + 1}&limit=${limit}&search=${search}`,
           prev:
             page > 1
-              ? `${process.env.HOST_API}/cliente?page=${page - 1}&limit=${limit}&search=${search}`
+              ? `${process.env.HOST_API}/kardex?page=${page - 1}&limit=${limit}&search=${search}`
               : null,
         },
-        cliente,
+        kardex,
       };
     } catch (error) {
       this.handleExceptions(error);
     }
   }
 
-  async findAllCombo() {
-    try {
-      const clientes = await this.prisma.tb_cliente.findMany({
-        orderBy: {
-          id_cliente: 'asc',
-        },
-      });
-      return clientes;
-    } catch (error) {
-      this.handleExceptions(error);
-    }
-  }
   findOne(id: number) {
-    return `This action returns a #${id} cliente`;
+    return `This action returns a #${id} kardex`;
   }
 
-  update(id: number, updateClienteDto: UpdateClienteDto) {
-    return `This action updates a #${id} cliente`;
+  update(id: number, updateKardexDto: UpdateKardexDto) {
+    return `This action updates a #${id} kardex`;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} cliente`;
+    return `This action removes a #${id} kardex`;
   }
 
   private handleExceptions(error: any) {
     this.logger.error(error);
-
+    if (error instanceof HttpException) {
+      throw error;
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
         case 'P2002':
