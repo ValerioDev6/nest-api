@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrinterService } from 'src/printer/printer.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { getCompraDetalleReport } from 'src/reports/html/compras_by_id_report';
 import { getProductoDetalleReport } from 'src/reports/html/producto_detalles_report';
 import { getProductosReport } from 'src/reports/pdf/productos.report';
 @Injectable()
@@ -52,9 +53,76 @@ export class ReportHtmlService {
       }
 
       const docDefinition = getProductoDetalleReport({
-        producto, // Ahora pasamos el producto directamente
+        producto,
         title: 'DETALLE DE PRODUCTO',
         subTitle: `Producto: ${producto.nombre_producto}`,
+      });
+
+      return this.printerService.createPdf(docDefinition);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al generar el reporte PDF');
+    }
+  }
+
+  async getCompraReportPdfById(id: string) {
+    try {
+      const compra = await this.prisma.tb_compra.findUnique({
+        where: {
+          id_compra: id,
+        },
+        include: {
+          tb_proveedores: {
+            select: {
+              nombre_comercial: true,
+            },
+          },
+          tb_metodo_pago: {
+            select: {
+              nombre_metodo_pago: true,
+            },
+          },
+          tb_detalle_compra: {
+            select: {
+              id_detalle_compra: true,
+              tb_productos: {
+                select: {
+                  nombre_producto: true,
+                  codigo_producto: true,
+                  precio_compra: true,
+                  precio_venta: true,
+                },
+              },
+              cantidad: true,
+              precio_unitario: true,
+              subtotal: true,
+            },
+          },
+        },
+      });
+
+      if (!compra) {
+        throw new NotFoundException('Compra no encontrada');
+      }
+
+      const docDefinition = getCompraDetalleReport({
+        compra: {
+          id_compra: compra.id_compra,
+          fecha_compra: compra.fecha_compra,
+          total_compra: compra.compra_total,
+          tb_proveedores: {
+            nombre_comercial: compra.tb_proveedores.nombre_comercial,
+          },
+          tb_metodo_pago: {
+            nombre_metodo_pago: compra.tb_metodo_pago.nombre_metodo_pago,
+          },
+          tb_detalle_compra: compra.tb_detalle_compra,
+        },
+        title: 'DETALLE DE COMPRA',
+        subTitle: `Compra: ${compra.id_compra}`,
       });
 
       return this.printerService.createPdf(docDefinition);

@@ -10,7 +10,6 @@ interface ProductoData {
   fecha_ingreso: Date;
   estado_produto: string;
 
-  // Relaciones
   tb_categorias: {
     nombre_cat: string;
   } | null;
@@ -33,7 +32,6 @@ interface ReportOptions {
 export const getProductosReport = (options: ReportOptions): TDocumentDefinitions => {
   const { title, subTitle, productos } = options;
 
-  // Función para formatear la fecha
   const formatFecha = (fecha: Date) => {
     return new Date(fecha).toLocaleDateString('es-PE', {
       day: '2-digit',
@@ -42,7 +40,6 @@ export const getProductosReport = (options: ReportOptions): TDocumentDefinitions
     });
   };
 
-  // Función para formatear precios
   const formatPrecio = (precio: Decimal) => {
     return `S/. ${precio.toFixed(2)}`;
   };
@@ -86,7 +83,6 @@ export const getProductosReport = (options: ReportOptions): TDocumentDefinitions
               { text: producto.tb_sucursales?.nombre_sucursal || 'Sin sucursal' },
               { text: producto.tb_tipo_propietario.descripcion },
             ]),
-            // Fila vacía para separar
             [
               { text: '', colSpan: 10, border: [false, false, false, false] },
               {},
@@ -99,7 +95,6 @@ export const getProductosReport = (options: ReportOptions): TDocumentDefinitions
               {},
               {},
             ],
-            // Fila para mostrar el total
             [
               { text: '', colSpan: 8, border: [false, false, false, false] },
               {},

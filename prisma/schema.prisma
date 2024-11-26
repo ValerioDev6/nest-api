@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model error_log {
+  id            Int       @id @default(autoincrement())
+  error_message String?   @db.Text
+  fecha         DateTime? @db.DateTime(0)
+}
+
 model tb_categorias {
   id_categoria      String              @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
   nombre_cat        String              @unique(map: "nombre_cat_UNIQUE") @db.VarChar(100)
@@ -63,6 +69,8 @@ model tb_detalle_compra {
   cantidad          Int?
   precio_unitario   Decimal?       @db.Decimal(10, 2)
   subtotal          Decimal?       @db.Decimal(10, 2)
+  fecha_compra      DateTime?      @default(now()) @db.DateTime(0)
+  created_at        DateTime?      @default(now()) @db.Timestamp(0)
   tb_compra         tb_compra?     @relation(fields: [id_compra], references: [id_compra], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_compra_ibfk_1")
   tb_productos      tb_productos?  @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_compra_ibfk_2")
   tb_categorias     tb_categorias? @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction, map: "tb_detalle_compra_ibfk_3")
@@ -301,6 +309,8 @@ model tb_proveedores {
   created_at       DateTime?                        @default(now()) @db.Timestamp(0)
   updated_at       DateTime?                        @default(now()) @db.Timestamp(0)
   nombre_comercial String?                          @db.VarChar(100)
+  total_compras    Decimal?                         @default(0.00) @db.Decimal(10, 2)
+  ultima_compra    DateTime?                        @db.Date
   tb_compra        tb_compra[]
   tb_personas      tb_personas?                     @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
 

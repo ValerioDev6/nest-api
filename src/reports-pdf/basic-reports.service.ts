@@ -4,6 +4,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { getHelloWordReport, getMarcasReport } from 'src/reports/pdf';
 import { getProductosReport } from 'src/reports/pdf/productos.report';
 import { getCategoriasReport } from '../reports/pdf/categorias.report';
+import { getComprasReport } from 'src/reports/pdf/compras_pdf.report';
+import { getProveedoresReport } from 'src/reports/pdf/proveedor.report';
 
 @Injectable()
 export class BasicReportsService {
@@ -103,6 +105,59 @@ export class BasicReportsService {
       return this.printerService.createPdf(docDefinition);
     } catch {
       throw new Error('Failed to generate PDF report');
+    }
+  }
+
+  async getComprasReporPdf() {
+    try {
+      const compras = await this.prisma.tb_compra.findMany({
+        include: {
+          tb_proveedores: {
+            select: {
+              nombre_comercial: true,
+            },
+          },
+          tb_metodo_pago: {
+            select: {
+              nombre_metodo_pago: true,
+            },
+          },
+        },
+        orderBy: {
+          fecha_compra: 'desc',
+        },
+      });
+
+      const docDefinition = getComprasReport({ compras });
+      return this.printerService.createPdf(docDefinition);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw new Error('Failed to generate PDF report');
+    }
+  }
+
+  async getProveedoresReportPdf() {
+    try {
+      const proveedores = await this.prisma.tb_proveedores.findMany({
+        include: {
+          tb_personas: {
+            select: {
+              nombres: true,
+              apellido_paterno: true,
+              apellido_materno: true,
+              numero_documento: true,
+              correo: true,
+              telefono: true,
+            },
+          },
+        },
+      });
+
+      const docDefinition = getProveedoresReport({ proveedores });
+      return this.printerService.createPdf(docDefinition);
+    } catch (error) {
+      console.error('Error generating Proveedores PDF:', error);
+      throw new Error('Failed to generate Proveedores PDF report');
     }
   }
 }

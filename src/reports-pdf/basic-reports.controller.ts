@@ -32,4 +32,22 @@ export class BasicReportsController {
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
+
+  @Get('compras')
+  async getCompras(@Res() response: Response) {
+    const pdfDoc = await this.basicReportsService.getComprasReporPdf();
+    response.setHeader('Content-Type', 'application/pdf');
+    pdfDoc.info.Title = 'Compras Reportes';
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
+  @Get('proveedores')
+  async getProveedores(@Res() response: Response) {
+    const pdfDoc = await this.basicReportsService.getProveedoresReportPdf();
+    response.setHeader('Content-Type', 'application/pdf');
+    pdfDoc.info.Title = 'Proveedores Reportes';
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
 }

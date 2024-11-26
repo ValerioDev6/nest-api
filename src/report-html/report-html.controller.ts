@@ -15,4 +15,14 @@ export class ReportHtmlController {
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
+
+  @Get('compras/:id')
+  async getCompraDetallePdf(@Param('id') id: string, @Res() response: Response) {
+    const pdfDoc = await this.reportHtmlService.getCompraReportPdfById(id);
+
+    response.setHeader('Content-Type', 'application/pdf');
+    pdfDoc.info.Title = 'Detalle de Compra Icases Store';
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
 }

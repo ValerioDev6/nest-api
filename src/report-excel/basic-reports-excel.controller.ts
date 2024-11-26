@@ -51,4 +51,19 @@ export class BasicReportsExcelController {
     await workbook.xlsx.write(response);
     response.end();
   }
+
+  @Get('compras')
+  async getComprasExcel(@Res() response: Response) {
+    const workbook = await this.basicReportsExcelService.getComprasReportExcel();
+
+    response.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    response.setHeader('Content-Disposition', 'attachment; filename=compras-report.xlsx');
+
+    await workbook.xlsx.write(response);
+    response.end();
+  }
 }

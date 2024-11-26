@@ -131,6 +131,21 @@ export class ProveedoresService {
     try {
       const proveedor = await this.prisma.tb_proveedores.findUnique({
         where: { id_proveedor: id },
+        include: {
+          tb_personas: {
+            select: {
+              nombres: true,
+              correo: true,
+              fecha_nacimiento: true,
+              numero_documento: true,
+              telefono: true,
+              tb_direccion: true,
+              tb_pais: true,
+              tb_sexo: true,
+              tb_telefonos_persona: true,
+            },
+          },
+        },
       });
 
       if (!proveedor) {
