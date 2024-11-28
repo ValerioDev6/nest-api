@@ -234,6 +234,7 @@ model tb_personal {
   @@index([id_rol], map: "id_rol")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model tb_personas {
   id_persona           String                 @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
   nombres              String                 @db.VarChar(50)
@@ -249,6 +250,14 @@ model tb_personas {
   apellido_materno     String                 @db.VarChar(50)
   numero_documento     String                 @db.VarChar(20)
   telefono             String?                @db.VarChar(20)
+  razon_social         String?                @db.VarChar(250)
+  estado_documento     String?                @db.VarChar(50)
+  condicion_documento  String?                @db.VarChar(50)
+  distrito             String?                @db.VarChar(100)
+  provincia            String?                @db.VarChar(100)
+  departamento         String?                @db.VarChar(100)
+  tipo_persona         String?                @db.VarChar(100)
+  actividad_economica  String?                @db.Text
   tb_cliente           tb_cliente[]
   tb_personal          tb_personal[]
   tb_tipo_persona      tb_tipo_persona?       @relation(fields: [id_tipo_persona], references: [id_tipo_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_personas_ibfk_1")

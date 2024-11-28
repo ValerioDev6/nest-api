@@ -9,10 +9,32 @@ import { CreatePersonaDto } from './dto/create-persona.dto';
 import { UpdatePersonaDto } from './dto/update-persona.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+export class PersonaDto {
+  nombres: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string;
+  numeroDocumento: string;
+}
+export class EmpresaDto {
+  razonSocial: string;
+  numeroDocumento: string;
+  estado: string;
+  condicion: string;
+  distrito?: string;
+  provincia?: string;
+  departamento?: string;
+  tipo: string;
+  actividadEconomica: string;
+}
 @Injectable()
 export class PersonaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly httpService: HttpService,
+  ) {}
+
   private readonly logger = new Logger('PersonaService');
 
   async create(createPersonaDto: CreatePersonaDto) {
@@ -105,8 +127,65 @@ export class PersonaService {
   }
 
   static readonly TIPO_PERSONA = {
-    PERSONAL: 'df091edc-83c7-11ef-8655-00e04cf010f7', // Reemplazar con el UUID real
-    CLIENTE: 'df09389f-83c7-11ef-8655-00e04cf010f7', // Reemplazar con el UUID real
-    PROVEEDOR: 'df093a97-83c7-11ef-8655-00e04cf010f7', // Reemplazar con el UUID real
+    PERSONAL: 'df091edc-83c7-11ef-8655-00e04cf010f7',
+    CLIENTE: 'df09389f-83c7-11ef-8655-00e04cf010f7',
+    PROVEEDOR: 'df093a97-83c7-11ef-8655-00e04cf010f7',
   };
+
+  async consultarDNI(dni: number): Promise<PersonaDto> {
+    try {
+      const url = `https://api.apis.net.pe/v2/reniec/dni?numero=${dni}`;
+
+      const response = await firstValueFrom(
+        this.httpService.get(url, {
+          headers: {
+            Authorization: process.env.RENIEC_API_TOKEN,
+            Accept: 'application/json',
+          },
+        }),
+      );
+
+      return {
+        nombres: response.data.nombres,
+        apellidoPaterno: response.data.apellidoPaterno,
+        apellidoMaterno: response.data.apellidoMaterno,
+        numeroDocumento: response.data.numeroDocumento,
+      };
+    } catch (error) {
+      console.error('Error consultando DNI:', error);
+      throw new Error('No se pudo consultar la información del DNI');
+    }
+  }
+
+  async consultarRUC(ruc: string): Promise<EmpresaDto> {
+    try {
+      const url = `https://api.apis.net.pe/v2/sunat/ruc/full?numero=${ruc}`;
+
+      const response = await firstValueFrom(
+        this.httpService.get(url, {
+          headers: {
+            Authorization: process.env.RENIEC_API_TOKEN,
+            Accept: 'application/json',
+          },
+        }),
+      );
+
+      const data = response.data;
+
+      return {
+        razonSocial: data.razonSocial,
+        numeroDocumento: data.numeroDocumento,
+        estado: data.estado,
+        condicion: data.condicion,
+        distrito: data.distrito !== '-' ? data.distrito : undefined,
+        provincia: data.provincia !== '-' ? data.provincia : undefined,
+        departamento: data.departamento !== '-' ? data.departamento : undefined,
+        tipo: data.tipo,
+        actividadEconomica: data.actividadEconomica,
+      };
+    } catch (error) {
+      console.error('Error consultando RUC:', error.response?.data || error.message);
+      throw new Error('No se pudo consultar la información del RUC');
+    }
+  }
 }
