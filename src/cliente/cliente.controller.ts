@@ -18,18 +18,23 @@ export class ClienteController {
     return this.clienteService.findAll(paginationDto);
   }
 
+  @Get('combo')
+  findAllClienteCombo() {
+    return this.clienteService.findAllCombo();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.clienteService.findOne(+id);
+    return this.clienteService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateClienteDto: UpdateClienteDto) {
-    return this.clienteService.update(+id, updateClienteDto);
+    return this.clienteService.update(id, updateClienteDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.clienteService.remove(+id);
+    return this.clienteService.remove(id);
   }
 }

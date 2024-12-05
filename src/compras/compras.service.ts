@@ -32,7 +32,7 @@ export class ComprasService {
           0,
         );
 
-        const igv = subtotal * 0;
+        const igv = subtotal * 0.18;
         const total = subtotal + igv;
 
         // Crear la compra principal
@@ -103,11 +103,19 @@ export class ComprasService {
           OR: [
             {
               tb_proveedores: {
-                tb_personas: {
-                  nombres: {
-                    contains: search,
+                OR: [
+                  { razon_social: { contains: search } },
+                  { nombre_comercial: { contains: search } },
+                  {
+                    tb_personas: {
+                      OR: [
+                        { nombres: { contains: search } },
+                        { apellido_paterno: { contains: search } },
+                        { apellido_materno: { contains: search } },
+                      ],
+                    },
                   },
-                },
+                ],
               },
             },
           ],
@@ -139,10 +147,13 @@ export class ComprasService {
 
       return {
         info: {
-          page: page,
-          limit: limit,
+          page,
+          limit,
           total,
-          next: `${process.env.HOST_API}/compras?page=${page + 1}&limit=${limit}&search=${search}`,
+          next:
+            page * limit < total
+              ? `${process.env.HOST_API}/compras?page=${page + 1}&limit=${limit}&search=${search}`
+              : null,
           prev:
             page > 1
               ? `${process.env.HOST_API}/compras?page=${page - 1}&limit=${limit}&search=${search}`
@@ -248,11 +259,17 @@ export class ComprasService {
         }),
       ]);
 
-      // Calculamos el monto total de los detalles
-      const montoTotal = detalles.reduce(
+      // Calculamos el monto subtotal de los detalles
+      const montoSubtotal = detalles.reduce(
         (sum, detalle) => sum + detalle.cantidad * Number(detalle.precio_unitario),
         0,
       );
+
+      // Calculamos el IGV (18%)
+      const montoIGV = montoSubtotal * 0.18;
+
+      // Calculamos el monto total
+      const montoTotal = montoSubtotal + montoIGV;
 
       return {
         info: {
@@ -268,6 +285,8 @@ export class ComprasService {
         detalles,
         resumen: {
           cantidad_items: total,
+          monto_subtotal: montoSubtotal,
+          monto_igv: montoIGV,
           monto_total: montoTotal,
         },
       };

@@ -15,8 +15,20 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 export class ClienteService {
   constructor(private readonly prisma: PrismaService) {}
   private readonly logger = new Logger('ClienteService');
-  create(createClienteDto: CreateClienteDto) {
-    return 'This action adds a new cliente';
+  async create(createClienteDto: CreateClienteDto) {
+    try {
+      return await this.prisma.$transaction(async (prisma) => {
+        const newCliente = await prisma.tb_cliente.create({
+          data: {
+            ...createClienteDto,
+          },
+        });
+
+        return newCliente;
+      });
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 10, search = '' } = paginationDto;
@@ -73,22 +85,110 @@ export class ClienteService {
         orderBy: {
           id_cliente: 'asc',
         },
+        select: {
+          id_cliente: true,
+          tb_personas: {
+            select: {
+              numero_documento: true,
+              correo: true,
+              telefono: true,
+              nombres: true,
+              razon_social: true,
+              tb_direccion: {
+                select: {
+                  direccion: true,
+                },
+              },
+            },
+          },
+        },
       });
       return clientes;
     } catch (error) {
       this.handleExceptions(error);
     }
   }
-  findOne(id: number) {
-    return `This action returns a #${id} cliente`;
+  async findOne(id: string) {
+    try {
+      const cliente = await this.prisma.tb_cliente.findUnique({
+        where: { id_cliente: id },
+        include: {
+          tb_personas: {
+            select: {
+              nombres: true,
+              correo: true,
+              razon_social: true,
+              fecha_nacimiento: true,
+              numero_documento: true,
+              telefono: true,
+              tb_direccion: true,
+              tb_pais: true,
+              tb_sexo: true,
+              tb_telefonos_persona: true,
+            },
+          },
+          tb_ventas: true, // Incluye todas las ventas
+        },
+      });
+
+      if (!cliente) {
+        throw new NotFoundException(`Cliente with ID ${id} not found`);
+      }
+
+      return cliente;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  update(id: number, updateClienteDto: UpdateClienteDto) {
-    return `This action updates a #${id} cliente`;
+  async update(id: string, updateClienteDto: UpdateClienteDto) {
+    try {
+      const { id_persona, ...restUpdateData } = updateClienteDto;
+
+      const updatedCliente = await this.prisma.tb_cliente.update({
+        where: { id_cliente: id },
+        data: {
+          ...restUpdateData,
+          ...(id_persona
+            ? {
+                tb_personas: {
+                  connect: { id_persona },
+                },
+              }
+            : undefined),
+          tb_ventas: {
+            set: [], // Si necesitas manejar las ventas de alguna manera
+          },
+        },
+        include: {
+          tb_personas: true,
+        },
+      });
+
+      return updatedCliente;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} cliente`;
+  async remove(id: string) {
+    try {
+      const cliente = await this.prisma.tb_cliente.findUnique({
+        where: { id_cliente: id },
+      });
+
+      if (!cliente) {
+        throw new NotFoundException(`cliente with  ID ${id} not found`);
+      }
+
+      await this.prisma.tb_cliente.delete({
+        where: { id_cliente: id },
+      });
+
+      return { message: `cliente with ID ${id} has been deleted` };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   private handleExceptions(error: any) {

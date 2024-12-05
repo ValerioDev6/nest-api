@@ -32,6 +32,7 @@ import { ComprasModule } from './compras/compras.module';
 import { MetodoPagosModule } from './metodo-pagos/metodo-pagos.module';
 import { KardexModule } from './kardex/kardex.module';
 import { ReportHtmlModule } from './report-html/report-html.module';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { ReportHtmlModule } from './report-html/report-html.module';
     MetodoPagosModule,
     KardexModule,
     ReportHtmlModule,
+    SalesModule,
   ],
   controllers: [],
   providers: [PrismaService],

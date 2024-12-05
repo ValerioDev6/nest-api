@@ -99,26 +99,33 @@ export class ProductsService {
         }),
         this.prisma.tb_productos.count({
           where: {
-            OR: [
-              {
-                nombre_producto: { contains: search },
-              },
-            ],
+            OR: [{ nombre_producto: { contains: search } }],
           },
         }),
       ]);
+
+      const productosConPrecioBase = productos.map((producto) => ({
+        ...producto,
+        precio_base_sin_igv: producto.precio_venta
+          ? producto.precio_venta.div(1.18).toNumber()
+          : null,
+      }));
+
       return {
         info: {
           page,
           limit,
           total,
-          next: `${process.env.HOST_API}/roles?page=${page + 1}&limit=${limit}&search=${search}`,
+          next:
+            total > page * limit
+              ? `${process.env.HOST_API}/productos?page=${page + 1}&limit=${limit}&search=${search}`
+              : null,
           prev:
             page > 1
-              ? `${process.env.HOST_API}/roles?page=${page - 1}&limit=${limit}&search=${search}`
+              ? `${process.env.HOST_API}/productos?page=${page - 1}&limit=${limit}&search=${search}`
               : null,
         },
-        productos,
+        productos: productosConPrecioBase,
       };
     } catch (error) {
       this.handleExceptions(error);
@@ -164,7 +171,14 @@ export class ProductsService {
         throw new NotFoundException(`Producto with ID ${id} not found`);
       }
 
-      return producto;
+      const productWithBasePrice = {
+        ...producto,
+        precio_base_sin_igv: producto.precio_venta
+          ? producto.precio_venta.div(1.18).toNumber()
+          : null,
+      };
+
+      return productWithBasePrice;
     } catch (error) {
       this.handleExceptions(error);
     }

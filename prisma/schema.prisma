@@ -237,7 +237,7 @@ model tb_personal {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model tb_personas {
   id_persona           String                 @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  nombres              String                 @db.VarChar(50)
+  nombres              String?                @db.VarChar(50)
   correo               String?                @db.VarChar(100)
   id_tipo_persona      String?                @db.VarChar(36)
   id_tipo_documento    String?                @db.VarChar(36)
@@ -246,8 +246,8 @@ model tb_personas {
   id_direccion         String?                @db.VarChar(36)
   id_pais              String?                @db.VarChar(36)
   id_tipo_telefono     String?                @db.VarChar(36)
-  apellido_paterno     String                 @db.VarChar(50)
-  apellido_materno     String                 @db.VarChar(50)
+  apellido_paterno     String?                @db.VarChar(50)
+  apellido_materno     String?                @db.VarChar(50)
   numero_documento     String                 @db.VarChar(20)
   telefono             String?                @db.VarChar(20)
   razon_social         String?                @db.VarChar(250)
@@ -295,6 +295,7 @@ model tb_productos {
   estado_produto      tb_productos_estado_produto? @default(Disponible)
   id_sucursal         String?                      @db.VarChar(36)
   id_tipo_propietario String                       @db.VarChar(36)
+  precio_base_sin_igv Decimal?                     @db.Decimal(10, 2)
   tb_detalle_compra   tb_detalle_compra[]
   tb_detalle_pedido   tb_detalle_pedido[]
   tb_detalle_venta    tb_detalle_venta[]
@@ -319,7 +320,7 @@ model tb_proveedores {
   updated_at       DateTime?                        @default(now()) @db.Timestamp(0)
   nombre_comercial String?                          @db.VarChar(100)
   total_compras    Decimal?                         @default(0.00) @db.Decimal(10, 2)
-  ultima_compra    DateTime?                        @db.Date
+  ultima_compra    DateTime?                        @db.DateTime(0)
   tb_compra        tb_compra[]
   tb_personas      tb_personas?                     @relation(fields: [id_persona], references: [id_persona], onDelete: NoAction, onUpdate: NoAction, map: "tb_proveedores_ibfk_1")
 
@@ -427,7 +428,7 @@ model tb_ventas {
   id_sucursal      String?                  @db.VarChar(36)
   id_personal      String?                  @db.VarChar(36)
   estado_venta     tb_ventas_estado_venta   @default(COMPLETADA)
-  serie_documento  String                   @db.VarChar(4)
+  serie_documento  String?                  @db.VarChar(25)
   observaciones    String?                  @db.Text
   created_at       DateTime?                @default(now()) @db.Timestamp(0)
   updated_at       DateTime?                @default(now()) @db.Timestamp(0)

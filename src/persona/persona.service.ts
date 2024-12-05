@@ -74,6 +74,7 @@ export class PersonaService {
         select: {
           id_persona: true,
           nombres: true,
+          razon_social: true,
           apellido_paterno: true,
           apellido_materno: true,
         },
@@ -81,6 +82,7 @@ export class PersonaService {
 
       return personas.map((persona) => ({
         id_persona: persona.id_persona,
+        razon_social: persona.razon_social,
         nombre_completo:
           `${persona.nombres} ${persona.apellido_paterno} ${persona.apellido_materno}`.trim(),
       }));

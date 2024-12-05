@@ -74,20 +74,39 @@ export class ReportHtmlService {
         where: {
           id_compra: id,
         },
-        include: {
+        select: {
+          id_compra: true,
+          fecha_compra: true,
+          numero_documento: true,
+          compra_subtotal: true,
+          compra_igv: true,
+          compra_total: true,
+          compra_comentario: true,
+
           tb_proveedores: {
             select: {
-              nombre_comercial: true,
+              tb_personas: {
+                select: {
+                  nombres: true,
+                  razon_social: true,
+                },
+              },
             },
           },
+
           tb_metodo_pago: {
             select: {
               nombre_metodo_pago: true,
             },
           },
+
           tb_detalle_compra: {
             select: {
               id_detalle_compra: true,
+              cantidad: true,
+              precio_unitario: true,
+              subtotal: true,
+
               tb_productos: {
                 select: {
                   nombre_producto: true,
@@ -96,9 +115,6 @@ export class ReportHtmlService {
                   precio_venta: true,
                 },
               },
-              cantidad: true,
-              precio_unitario: true,
-              subtotal: true,
             },
           },
         },
@@ -109,18 +125,7 @@ export class ReportHtmlService {
       }
 
       const docDefinition = getCompraDetalleReport({
-        compra: {
-          id_compra: compra.id_compra,
-          fecha_compra: compra.fecha_compra,
-          total_compra: compra.compra_total,
-          tb_proveedores: {
-            nombre_comercial: compra.tb_proveedores.nombre_comercial,
-          },
-          tb_metodo_pago: {
-            nombre_metodo_pago: compra.tb_metodo_pago.nombre_metodo_pago,
-          },
-          tb_detalle_compra: compra.tb_detalle_compra,
-        },
+        compra,
         title: 'DETALLE DE COMPRA',
         subTitle: `Compra: ${compra.id_compra}`,
       });

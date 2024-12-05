@@ -42,6 +42,15 @@ export class BasicReportsController {
     pdfDoc.end();
   }
 
+  @Get('ventas')
+  async geVentas(@Res() response: Response) {
+    const pdfDoc = await this.basicReportsService.getVentasReportPdf();
+    response.setHeader('Content-Type', 'application/pdf');
+    pdfDoc.info.Title = 'Ventas Reportes';
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
   @Get('proveedores')
   async getProveedores(@Res() response: Response) {
     const pdfDoc = await this.basicReportsService.getProveedoresReportPdf();

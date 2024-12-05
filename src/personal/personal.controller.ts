@@ -23,6 +23,11 @@ export class PersonalController {
     return this.personalService.findOne(id);
   }
 
+  @Get(':id/detalle')
+  findOneDetalle(@Param('id') id: string) {
+    return this.personalService.findOneAll(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePersonalDto: UpdatePersonalDto) {
     return this.personalService.update(+id, updatePersonalDto);

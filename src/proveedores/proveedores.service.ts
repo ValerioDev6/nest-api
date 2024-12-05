@@ -47,11 +47,12 @@ export class ProveedoresService {
               correo: true,
               telefono: true,
               nombres: true,
+              razon_social: true,
               tb_direccion: {
                 select: {
                   direccion: true,
                 },
-              }, // Incluye tb_direccion directamente en select
+              },
             },
           },
         },
@@ -72,13 +73,19 @@ export class ProveedoresService {
           skip: (page - 1) * limit,
           take: limit,
           where: {
-            tb_personas: {
-              OR: [
-                { nombres: { contains: search } },
-                { apellido_paterno: { contains: search } },
-                { apellido_materno: { contains: search } },
-              ],
-            },
+            OR: [
+              {
+                tb_personas: {
+                  OR: [
+                    { nombres: { contains: search } },
+                    { apellido_paterno: { contains: search } },
+                    { apellido_materno: { contains: search } },
+                    { razon_social: { contains: search } },
+                  ],
+                },
+              },
+              { nombre_comercial: { contains: search } },
+            ],
           },
           include: {
             tb_personas: {
@@ -92,16 +99,27 @@ export class ProveedoresService {
               },
             },
           },
+          orderBy: {
+            tb_personas: {
+              nombres: 'asc',
+            },
+          },
         }),
         this.prisma.tb_proveedores.count({
           where: {
-            tb_personas: {
-              OR: [
-                { nombres: { contains: search } },
-                { apellido_paterno: { contains: search } },
-                { apellido_materno: { contains: search } },
-              ],
-            },
+            OR: [
+              {
+                tb_personas: {
+                  OR: [
+                    { nombres: { contains: search } },
+                    { apellido_paterno: { contains: search } },
+                    { apellido_materno: { contains: search } },
+                    { razon_social: { contains: search } },
+                  ],
+                },
+              },
+              { nombre_comercial: { contains: search } },
+            ],
           },
         }),
       ]);
@@ -136,6 +154,7 @@ export class ProveedoresService {
             select: {
               nombres: true,
               correo: true,
+              razon_social: true,
               fecha_nacimiento: true,
               numero_documento: true,
               telefono: true,
@@ -145,6 +164,7 @@ export class ProveedoresService {
               tb_telefonos_persona: true,
             },
           },
+          tb_compra: true,
         },
       });
 
@@ -158,8 +178,34 @@ export class ProveedoresService {
     }
   }
 
-  update(id: string, updateProveedoreDto: UpdateProveedoreDto) {
-    return `This action updates a #${id} proveedore`;
+  async update(id: string, updateProveedoreDto: UpdateProveedoreDto) {
+    try {
+      const { id_persona, ...restUpdateData } = updateProveedoreDto;
+
+      const updatedProveedor = await this.prisma.tb_proveedores.update({
+        where: { id_proveedor: id },
+        data: {
+          ...restUpdateData,
+          ...(id_persona
+            ? {
+                tb_personas: {
+                  connect: { id_persona },
+                },
+              }
+            : undefined),
+          tb_compra: {
+            set: [],
+          },
+        },
+        include: {
+          tb_personas: true,
+        },
+      });
+
+      return updatedProveedor;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   async remove(id: string) {

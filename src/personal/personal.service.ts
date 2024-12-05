@@ -143,6 +143,49 @@ export class PersonalService {
     }
   }
 
+  async findOneAll(id: string) {
+    try {
+      const personal = await this.prisma.tb_personal.findUnique({
+        where: { id_personal: id },
+        include: {
+          tb_personas: {
+            include: {
+              tb_pais: true,
+              tb_tipo_telefono: true,
+              tb_sexo: true,
+              tb_direccion: true,
+              tb_tipo_persona: true,
+              tb_tipo_documento: true,
+              tb_telefonos_persona: true,
+            },
+          },
+          tb_rol: true,
+          tb_ventas: {
+            include: {
+              // You can include related entities for sales if needed
+              tb_cliente: {
+                include: {
+                  tb_personas: true,
+                },
+              },
+              tb_metodo_pago: true,
+              tb_sucursales: true,
+            },
+            orderBy: {
+              fecha_venta: 'desc', // Optional: order sales by date descending
+            },
+          },
+        },
+      });
+
+      if (!personal) throw new NotFoundException(`Personal con ID ${id} no encontrado`);
+
+      return personal;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+
   update(id: number, updatePersonalDto: UpdatePersonalDto) {
     return `This action updates a #${id} personal`;
   }

@@ -6,6 +6,7 @@ import { getProductosReport } from 'src/reports/pdf/productos.report';
 import { getCategoriasReport } from '../reports/pdf/categorias.report';
 import { getComprasReport } from 'src/reports/pdf/compras_pdf.report';
 import { getProveedoresReport } from 'src/reports/pdf/proveedor.report';
+import { getVentasReport } from 'src/reports/pdf/ventas.report';
 
 @Injectable()
 export class BasicReportsService {
@@ -158,6 +159,59 @@ export class BasicReportsService {
     } catch (error) {
       console.error('Error generating Proveedores PDF:', error);
       throw new Error('Failed to generate Proveedores PDF report');
+    }
+  }
+
+  // Servicio para generar el reporte PDF de ventas
+
+  async getVentasReportPdf() {
+    try {
+      const ventas = await this.prisma.tb_ventas.findMany({
+        include: {
+          tb_cliente: {
+            include: {
+              tb_personas: {
+                select: {
+                  nombres: true,
+                  apellido_paterno: true,
+                  apellido_materno: true,
+                  numero_documento: true,
+                  correo: true,
+                  telefono: true,
+                },
+              },
+            },
+          },
+          tb_personal: {
+            include: {
+              tb_personas: {
+                select: {
+                  nombres: true,
+                  apellido_paterno: true,
+                  apellido_materno: true,
+                  numero_documento: true,
+                  correo: true,
+                  telefono: true,
+                },
+              },
+            },
+          },
+          tb_metodo_pago: {
+            select: {
+              nombre_metodo_pago: true,
+            },
+          },
+        },
+        orderBy: {
+          fecha_venta: 'desc',
+        },
+      });
+
+      const docDefinition = getVentasReport({ ventas });
+      return this.printerService.createPdf(docDefinition);
+    } catch (error) {
+      console.error('Error generating Sales PDF:', error);
+      throw new Error('Failed to generate Sales PDF report');
     }
   }
 }

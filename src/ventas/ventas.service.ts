@@ -9,17 +9,97 @@ import {
 import { RequestVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { Prisma, tb_personal } from '@prisma/client';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interfaces';
 
 @Injectable()
 export class VentasService {
   constructor(private readonly prisma: PrismaService) {}
   private readonly logger = new Logger('VentasService');
-  async create(requestVenta: RequestVentaDto) {
+
+  // async create(requestVenta: RequestVentaDto, personal: tb_personal) {
+  //   this.logger.log('Iniciando registro de venta', { data: requestVenta });
+
+  //   return await this.prisma.$transaction(async (prisma) => {
+  //     try {
+  //       // Validar que vengan productos
+  //       if (!requestVenta.detalles?.length) {
+  //         throw new BadRequestException('La venta debe tener productos');
+  //       }
+
+  //       // Calcular totales desde los productos
+  //       const subtotal = requestVenta.detalles.reduce(
+  //         (sum, detalle) => sum + detalle.cantidad * Number(detalle.precio_unitario),
+  //         0,
+  //       );
+
+  //       // Calcular impuesto (IGV)
+  //       const impuesto = subtotal * 0.18; // IGV del 18%
+  //       const precio_total = subtotal + impuesto;
+
+  //       // Crear la venta principal usando el ID del personal desde el token
+  //       const venta = await prisma.tb_ventas.create({
+  //         data: {
+  //           ...requestVenta,
+  //           id_personal: personal.id, // Usar el ID del personal desde el token
+  //           subtotal,
+  //           impuesto,
+  //           precio_total,
+  //           estado_venta: requestVenta.estado_venta || 'COMPLETADA',
+  //         },
+  //       });
+
+  //       this.logger.log('Venta principal creada', { id_venta: venta.id_venta });
+
+  //       // Crear los detalles de la venta
+  //       const detallesPromises = requestVenta.detalles.map((detalle) =>
+  //         prisma.tb_detalle_venta.create({
+  //           data: {
+  //             id_venta: venta.id_venta,
+  //             id_producto: detalle.id_producto,
+  //             cantidad: detalle.cantidad,
+  //             precio_unitario: detalle.precio_unitario,
+  //             subtotal: detalle.cantidad * Number(detalle.precio_unitario),
+  //             precio: detalle.precio,
+  //             descuento: detalle.descuento || 0,
+  //           },
+  //         }),
+  //       );
+
+  //       const detallesCreados = await Promise.all(detallesPromises);
+
+  //       this.logger.log('Detalles de venta creados', {
+  //         id_venta: venta.id_venta,
+  //         total_detalles: detallesCreados.length,
+  //       });
+
+  //       return {
+  //         message: 'Venta registrada con éxito',
+  //         venta: {
+  //           ...venta,
+  //           detalles: detallesCreados,
+  //         },
+  //       };
+  //     } catch (error) {
+  //       this.logger.error('Error al registrar venta', {
+  //         error: error.message,
+  //         stack: error.stack,
+  //       });
+
+  //       if (error instanceof BadRequestException) {
+  //         throw error;
+  //       }
+
+  //       throw new InternalServerErrorException('Error al registrar la venta: ' + error.message);
+  //     }
+  //   });
+  // }
+
+  async create(requestVenta: RequestVentaDto, personal: tb_personal) {
     this.logger.log('Iniciando registro de venta', { data: requestVenta });
 
-    return await this.prisma.$transaction(async (prisma) => {
+    return this.prisma.$transaction(async (prisma) => {
       try {
         // Validar que vengan productos
         if (!requestVenta.detalles?.length) {
@@ -32,20 +112,25 @@ export class VentasService {
           0,
         );
 
-        // Calcular impuesto (IGV)
         const impuesto = subtotal * 0.18; // IGV del 18%
         const precio_total = subtotal + impuesto;
 
         // Crear la venta principal
         const venta = await prisma.tb_ventas.create({
           data: {
-            ...requestVenta,
+            id_personal: personal.id_personal,
+            id_cliente: requestVenta.id_cliente || null,
+            tipo_documento: requestVenta.tipo_documento || 'BOLETA',
+            numero_documento: requestVenta.numero_documento,
+            serie_documento: requestVenta.serie_documento,
+            estado_venta: requestVenta.estado_venta || 'COMPLETADA',
+            fecha_venta: requestVenta.fecha_venta,
             subtotal,
             impuesto,
             precio_total,
-            estado_venta: requestVenta.estado_venta || 'COMPLETADA',
-            // Otros campos que quieras incluir por defecto
-          },
+            observaciones: requestVenta.observaciones,
+            id_metodo_pago: requestVenta.id_metodo_pago || null,
+          } as Prisma.tb_ventasUncheckedCreateInput,
         });
 
         this.logger.log('Venta principal creada', { id_venta: venta.id_venta });
@@ -59,7 +144,6 @@ export class VentasService {
               cantidad: detalle.cantidad,
               precio_unitario: detalle.precio_unitario,
               subtotal: detalle.cantidad * Number(detalle.precio_unitario),
-              precio: detalle.precio,
               descuento: detalle.descuento || 0,
             },
           }),
@@ -261,16 +345,6 @@ export class VentasService {
     const { page = 1, limit = 5 } = paginationDto;
 
     try {
-      // Verificar si la venta existe
-      const ventaExists = await this.prisma.tb_ventas.findUnique({
-        where: { id_venta: id },
-        select: { id_venta: true },
-      });
-
-      if (!ventaExists) {
-        throw new NotFoundException(`Venta con ID ${id} no encontrada`);
-      }
-
       // Obtener los detalles paginados y el total
       const [detalles, total] = await Promise.all([
         this.prisma.tb_detalle_venta.findMany({
@@ -293,15 +367,15 @@ export class VentasService {
         }),
       ]);
 
-      // Calcular totales
-      const resumen = detalles.reduce(
-        (acc, detalle) => ({
-          subtotal: acc.subtotal + Number(detalle.subtotal),
-          descuentoTotal: acc.descuentoTotal + Number(detalle.descuento || 0),
-          cantidad_items: acc.cantidad_items + detalle.cantidad,
-        }),
-        { subtotal: 0, descuentoTotal: 0, cantidad_items: 0 },
-      );
+      // Obtener la venta para el resumen
+      const venta = await this.prisma.tb_ventas.findUnique({
+        where: { id_venta: id },
+        select: {
+          subtotal: true,
+          impuesto: true,
+          precio_total: true,
+        },
+      });
 
       return {
         info: {
@@ -317,9 +391,10 @@ export class VentasService {
         detalles,
         resumen: {
           cantidad_items: total,
-          subtotal: resumen.subtotal,
-          descuento_total: resumen.descuentoTotal,
-          monto_total: resumen.subtotal - resumen.descuentoTotal,
+          subtotal: venta.subtotal.toString(),
+          monto_total: venta.subtotal.toString(),
+          igv: venta.impuesto?.toString(),
+          precio_total: venta.precio_total?.toString(),
         },
       };
     } catch (error) {
