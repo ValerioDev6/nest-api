@@ -9,4 +9,18 @@ export class SalesController {
   findAll() {
     return this.salesService.getTotales();
   }
+  @Get('consulta-mes-semana')
+  findAllMesSemanaMes() {
+    return this.salesService.getVentasDiasSemanaMes();
+  }
+
+  @Get('consulta-mes')
+  findAllMes() {
+    return this.salesService.obtenerVentasMensuales();
+  }
+
+  @Get('consulta-compra-dias')
+  findAllCompras() {
+    return this.salesService.obtenerComprasDiezDias();
+  }
 }

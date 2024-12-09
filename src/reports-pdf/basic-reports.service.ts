@@ -162,8 +162,6 @@ export class BasicReportsService {
     }
   }
 
-  // Servicio para generar el reporte PDF de ventas
-
   async getVentasReportPdf() {
     try {
       const ventas = await this.prisma.tb_ventas.findMany({

@@ -80,6 +80,7 @@ model tb_detalle_compra {
   @@index([id_producto], map: "id_producto")
 }
 
+
 model tb_detalle_pedido {
   id_detalle_pedido String        @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
   id_pedido         String?       @db.VarChar(36)
